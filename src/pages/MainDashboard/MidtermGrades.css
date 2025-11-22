@@ -1,0 +1,7 @@
+.midterm-table .ant-table {
+  font-size: 9px;
+}
+.midterm-table .ant-table-thead > tr > th {
+  font-size: 9px !important;
+}
+

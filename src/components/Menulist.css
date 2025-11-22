@@ -1,0 +1,27 @@
+.greeting-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 120px;
+  border-top: 1px solid #778584;
+  border-bottom: 1px solid #778584;
+  margin-bottom: 30px;
+  margin-top: 19px;
+  text-align: center; /* ensure content inside is centered */
+}
+
+.greeting-content {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
+}
+
+.username {
+  color: #00796b;
+}
+
+.academic-info {
+  margin-top: 5px;
+  font-size: 12px;
+  display: block;
+}

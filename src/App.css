@@ -1,0 +1,19 @@
+/* sidebar.css or your main CSS file */
+.ant-menu-item a {
+  text-decoration: none !important;
+  color: inherit; /* keep default color */
+}
+
+.ant-table-thead > tr > th {
+  background-color: #f9fafb !important;
+}
+.ant-input-number {
+  border-radius: 6px;
+}
+.ant-tabs-content, .ant-card-body {
+  overflow-x: auto;
+}
+
+
+
+
