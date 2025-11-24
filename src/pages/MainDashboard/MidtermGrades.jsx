@@ -19,6 +19,7 @@ import loginService from "../../api/loginService";
 import { debounce } from "lodash";
 import { calculateMidtermGrade } from "../../utils/gradeCalculations";
 import "./MidtermGrades.css";
+
 const { useBreakpoint } = Grid;
 
 const API_URL = "/GradeCalculation/students-midtermGrades";
@@ -43,6 +44,12 @@ export default function MidtermGradesTableContent() {
   const isSmallScreen = window.innerWidth < 1024;
   const screens = useBreakpoint();
   const isSmall = !screens.lg;
+
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [selectedSubjectForAdding, setSelectedSubjectForAdding] =
+    useState(null);
+  const [availableStudents, setAvailableStudents] = useState([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
   const modifiedGradesRef = useRef(new Map());
 
@@ -80,8 +87,26 @@ export default function MidtermGradesTableContent() {
 
     try {
       setSaving(true);
+
       const currentGrades = gradesRef.current;
-      const payload = currentGrades.map((student) => ({
+
+      /* ✅ Inject correct subject totals into EACH student */
+      const syncedGrades = currentGrades.map((student) => {
+        const subjectTotal = subjectTotals[student.subjectName];
+
+        if (subjectTotal) {
+          return {
+            ...student,
+            prelimTotal: subjectTotal.prelimTotal || 0,
+            midtermTotal: subjectTotal.midtermTotal || 0,
+          };
+        }
+
+        return student;
+      });
+
+      /* ✅ Build payload with correct totals */
+      const payload = syncedGrades.map((student) => ({
         id: student.id,
         studentId: student.studentId,
         subjectId: student.subjectId,
@@ -139,6 +164,7 @@ export default function MidtermGradesTableContent() {
         totalScorePerlimAndMidterm: student.totalScorePerlimAndMidterm || 0,
         overallPrelimAndMidterm: student.overallPrelimAndMidterm || 0,
         combinedPrelimMidtermAverage: student.combinedPrelimMidtermAverage || 0,
+
         midtermPG: student.midtermPG || 0,
         midtermExamWeighted: student.midtermExamWeighted || 0,
 
@@ -147,35 +173,38 @@ export default function MidtermGradesTableContent() {
         gradePointEquivalent: student.gradePointEquivalent || 0,
       }));
 
-      console.log("Sending payload with", payload.length, "grades");
+      console.log("✅ Sending payload with", payload.length, "grades");
 
-      const modifiedId = Array.from(modifiedGradesRef.current.keys())[0];
-      const modifiedGradePayload = payload.find((p) => p.id === modifiedId);
-      console.log("Modified grade in payload:", {
+      /* ✅ Log correct modified rows */
+      const modifiedIds = Array.from(modifiedGradesRef.current.keys());
+      console.log("✅ Modified IDs:", modifiedIds);
+
+      const lastModifiedId = modifiedIds[modifiedIds.length - 1];
+      const modifiedGradePayload = payload.find((p) => p.id === lastModifiedId);
+
+      console.log("✅ Last modified grade in payload:", {
         id: modifiedGradePayload?.id,
         studentId: modifiedGradePayload?.studentId,
         prelimScore: modifiedGradePayload?.prelimScore,
+        prelimTotal: modifiedGradePayload?.prelimTotal,
         midtermScore: modifiedGradePayload?.midtermScore,
+        midtermTotal: modifiedGradePayload?.midtermTotal,
         totalMidtermGrade: modifiedGradePayload?.totalMidtermGrade,
-        quizzes: modifiedGradePayload?.quizzes,
       });
 
-      const response = await axiosInstance.put(
-        `${UPDATE_API_URL}/batch-update`,
-        payload
-      );
+      await axiosInstance.put(`${UPDATE_API_URL}/batch-update`, payload);
 
       modifiedGradesRef.current.clear();
 
-      message.success("Grades saved!");
+      message.success("✅ Grades saved successfully!");
     } catch (err) {
       message.error(
-        "Failed to save: " + (err.response?.data?.message || err.message)
+        "❌ Failed to save: " + (err.response?.data?.message || err.message)
       );
     } finally {
       setSaving(false);
     }
-  }, [academicPeriodId, academicYear, semester]);
+  }, [academicPeriodId, academicYear, semester, subjectTotals]);
 
   // Debounced version
   const debouncedSave = useCallback(
@@ -184,6 +213,25 @@ export default function MidtermGradesTableContent() {
     }, 2000),
     [saveToBackend]
   );
+
+  const fetchAvailableStudents = async () => {
+    try {
+      const { data: allStudents } = await axiosInstance.get(
+        "/Auth/all-students"
+      );
+      setAvailableStudents(allStudents || []);
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to fetch students.");
+    }
+  };
+
+  const openAddStudentModal = (subject) => {
+    setSelectedSubjectForAdding(subject);
+    setSelectedStudentIds([]);
+    fetchAvailableStudents();
+    setShowAddStudentModal(true);
+  };
 
   const handleInputChange = (
     recordId,
@@ -330,11 +378,18 @@ export default function MidtermGradesTableContent() {
         }
 
         // Mark as modified
-        modifiedGradesRef.current.set(grade.id, true);
+        modifiedGradesRef.current.set(grade.id, updatedGrade);
 
-        // Recalculate with new totals
         if (weights && gradeScale.length > 0) {
-          return calculateMidtermGrade(updatedGrade, weights, gradeScale);
+          const recalculated = calculateMidtermGrade(
+            updatedGrade,
+            weights,
+            gradeScale
+          );
+
+          modifiedGradesRef.current.set(grade.id, recalculated);
+
+          return recalculated;
         }
 
         return updatedGrade;
@@ -796,9 +851,29 @@ export default function MidtermGradesTableContent() {
       <Card
         key={subjectName}
         title={
-          <Title level={4} style={{ margin: 0 }}>
-            {subjectName}
-          </Title>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>
+              {subjectName}
+            </Title>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() =>
+                openAddStudentModal({
+                  id: subjectGrades[0]?.subjectId, // get subjectId from the first grade in this subject
+                  name: subjectName,
+                })
+              }
+            >
+              Add Student
+            </Button>
+          </div>
         }
         style={{ marginBottom: 32 }}
       >
@@ -824,6 +899,13 @@ export default function MidtermGradesTableContent() {
       </div>
 
       <div style={{ marginBottom: 16 }}>
+        {/* <Button
+          type="primary"
+          loading={calculating}
+          onClick={() => handleCalculateGrades("finals")}
+        >
+          Calculate Finals
+        </Button> */}
         {saving && (
           <span style={{ marginLeft: 10, color: "#1890ff", fontWeight: 500 }}>
             ⏳ Auto-saving...
@@ -837,6 +919,101 @@ export default function MidtermGradesTableContent() {
       </h5>
 
       {subjects.map((subjectName) => renderTableForSubject(subjectName))}
+
+      {showAddStudentModal && (
+        <div
+          className="add-student-modal"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 24,
+              borderRadius: 8,
+              width: 400,
+              maxHeight: "80vh",
+              overflowY: "auto",
+            }}
+          >
+            <h3>Add Students to {selectedSubjectForAdding?.name}</h3>
+            <div style={{ maxHeight: 300, overflowY: "auto" }}>
+              {availableStudents.map((student) => (
+                <div key={student.id}>
+                  <input
+                    type="checkbox"
+                    checked={selectedStudentIds.includes(student.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedStudentIds((prev) => [...prev, student.id]);
+                      } else {
+                        setSelectedStudentIds((prev) =>
+                          prev.filter((id) => id !== student.id)
+                        );
+                      }
+                    }}
+                  />{" "}
+                  {student.fullname}
+                </div>
+              ))}
+            </div>
+            <div
+              style={{
+                marginTop: 16,
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+              }}
+            >
+              <Button
+                type="primary"
+                onClick={async () => {
+                  if (!selectedStudentIds.length)
+                    return message.warning("Select at least one student");
+
+                  try {
+                    await Promise.all(
+                      selectedStudentIds.map((studentId) => {
+                        return axiosInstance.post("/StudentSubjects", {
+                          studentId: studentId,
+                          subjectIds: [selectedSubjectForAdding.id], // send as array
+                        });
+                      })
+                    );
+
+                    toast.success("Students assigned successfully!");
+                    setShowAddStudentModal(false);
+                    setSelectedStudentIds([]);
+                    fetchAllData(); // reload the table
+                  } catch (err) {
+                    console.error(err);
+                    toast.error(
+                      err.response?.data?.message ||
+                        "Failed to assign subjects."
+                    );
+                  }
+                }}
+              >
+                Add Selected
+              </Button>
+
+              <Button onClick={() => setShowAddStudentModal(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
     </Spin>

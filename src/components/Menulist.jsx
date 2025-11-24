@@ -91,6 +91,15 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
           </Link>
         ),
       },
+      {
+        key: "viewing",
+        icon: <RightOutlined />,
+        label: (
+          <Link to="/my-subjects" style={{ textDecoration: "none" }}>
+            My Subjects
+          </Link>
+        ),
+      },
     ],
     Teacher: [
       {
@@ -101,6 +110,58 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
             Dashboard
           </Link>
         ),
+      },
+      {
+        key: "students",
+        icon: <RightOutlined />,
+        label: <Link to="/students">Students</Link>,
+      },
+      {
+        key: "midterm",
+        icon: <RightOutlined />,
+        label: (
+          <Link to="/midterm" style={{ textDecoration: "none" }}>
+            Student Midterm Grades
+          </Link>
+        ),
+      },
+      {
+        key: "finals",
+        icon: <RightOutlined />,
+        label: (
+          <Link to="/finals" style={{ textDecoration: "none" }}>
+            Student Final Grades
+          </Link>
+        ),
+      },
+      {
+        key: "myStudents",
+        icon: <RightOutlined />,
+        label: (
+          <Link
+            to="/teacher-students"
+            style={{ textDecoration: "none" }}
+            className="no-underline"
+          >
+            My Students
+          </Link>
+        ),
+      },
+    ],
+    Coordinator: [
+      {
+        key: "dashboard",
+        icon: <HomeFilled />,
+        label: (
+          <Link to="/main-dashboard" style={{ textDecoration: "none" }}>
+            Dashboard
+          </Link>
+        ),
+      },
+      {
+        key: "students",
+        icon: <RightOutlined />,
+        label: <Link to="/students">Students</Link>,
       },
       {
         key: "midterm",
@@ -159,14 +220,29 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         label: <Link to="/teachers">Teachers</Link>,
       },
       {
-        key: "students",
+        key: "assignSubjects",
         icon: <RightOutlined />,
-        label: <Link to="/students">Students</Link>,
+        label: <Link to="/assign-subjects">Assign Subjects</Link>,
       },
       {
         key: "viewing",
         icon: <RightOutlined />,
         label: <Link to="/view-grades">View Grades</Link>,
+      },
+      {
+        key: "students",
+        icon: <RightOutlined />,
+        label: <Link to="/students">Students</Link>,
+      },
+      {
+        key: "curriculum-subjects",
+        icon: <RightOutlined />,
+        label: <Link to="/curriculum-subjects">Curriculum Subjects</Link>,
+      },
+      {
+        key: "add-curriculum",
+        icon: <RightOutlined />,
+        label: <Link to="/add-curriculum">Add Curriculum</Link>,
       },
       // {
       //   key: "academicPeriods",

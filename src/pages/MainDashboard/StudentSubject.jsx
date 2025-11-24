@@ -44,6 +44,7 @@ function StudentSubject() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortField, setSortField] = useState("fullname"); // default sort field
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]); // array now
 
   // Main function to fetch all necessary data from the backend.
   const fetchStudentsAndSubjects = async () => {
@@ -226,19 +227,21 @@ function StudentSubject() {
   // Handle form submission for assigning subjects to a student.
   const handleAssignSubjects = async (e) => {
     e.preventDefault();
-    if (!selectedStudentId) return toast.error("Please select a student.");
+    if (!selectedStudentIds.length)
+      return toast.error("Please select at least one student.");
     if (!selectedSubjectIds.length)
       return toast.error("Please select at least one subject.");
 
     try {
       await axiosInstance.post("/StudentSubjects", {
-        studentId: selectedStudentId,
+        // make a new endpoint
+        studentIds: selectedStudentIds,
         subjectIds: selectedSubjectIds,
       });
 
       toast.success("Subjects assigned successfully!");
       setShowAssignSubjectsModal(false);
-      setSelectedStudentId(null);
+      setSelectedStudentIds([]);
       setSelectedSubjectIds([]);
       fetchStudentsAndSubjects();
     } catch (err) {
@@ -300,22 +303,25 @@ function StudentSubject() {
 
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div style={{ display: "flex", gap: "10px" }}>
-            {currentRole !== "Student" && (
-              <>
+            <div style={{ display: "flex", gap: "10px" }}>
+              {currentRole === "Admin" && (
                 <button
                   className="btn btn-success"
                   onClick={() => setShowAddStudentModal(true)}
                 >
                   Add Student
                 </button>
+              )}
+
+              {currentRole === "Teacher" && (
                 <button
                   className="btn btn-info"
                   onClick={() => setShowAssignSubjectsModal(true)}
                 >
-                  Assign Subjects
+                  Assign Subjects to Students
                 </button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
@@ -588,20 +594,19 @@ function StudentSubject() {
                   </div>
                   <div className="modal-body">
                     {/* Select Student (Ant Design Select with search & virtualization) */}
-                    {/* Select Student (Ant Design Select with search & virtualization) */}
                     <div className="mb-3">
-                      <label className="form-label">Select Student</label>
+                      <label className="form-label">Select Students</label>
                       <AntSelect
+                        mode="multiple" // ✅ allow multiple selection
                         showSearch
-                        showArrow
+                        suffixIcon={null}
                         allowClear
-                        placeholder="Search and select a student"
+                        placeholder="Search and select students"
                         style={{ width: "100%" }}
                         optionFilterProp="label"
-                        onChange={(val) => setSelectedStudentId(val)}
-                        value={selectedStudentId}
+                        onChange={(val) => setSelectedStudentIds(val)} // array of selected IDs
+                        value={selectedStudentIds}
                         dropdownMatchSelectWidth={false}
-                        // ✅ Fix dropdown appearing under modal
                         getPopupContainer={(triggerNode) =>
                           triggerNode.parentNode
                         }
@@ -618,7 +623,6 @@ function StudentSubject() {
                           <Option
                             key={s.id}
                             value={s.id}
-                            // ✅ Include name + year level in label for search
                             label={`${s.fullname} — ${
                               s.yearLevel || "N/A"
                             } Year`}
@@ -633,11 +637,8 @@ function StudentSubject() {
                               <span>
                                 <strong>{s.fullname}</strong>
                               </span>
-
                               <small className="text-muted">
-                                <span>
-                                  {s.yearLevel || "N/A"} - {s.department || "-"}
-                                </span>
+                                {s.yearLevel || "N/A"} - {s.department || "-"}
                               </small>
                             </div>
                           </Option>
@@ -646,31 +647,34 @@ function StudentSubject() {
                     </div>
 
                     {/* Filter Subjects by Department */}
+                    {/* Filter Subjects by Department */}
                     <div className="mb-3">
                       <label className="form-label">Select Subjects</label>
                       <div style={{ maxHeight: "200px", overflowY: "auto" }}>
-                        {(() => {
-                          const selectedStudent = students.find(
-                            (s) => s.id === selectedStudentId
-                          );
-                          if (!selectedStudent)
-                            return (
-                              <p className="text-muted">
-                                Select a student first.
-                              </p>
-                            );
+                        {availableSubjects.length > 0 ? (
+                          availableSubjects
+                            .filter((sub) => {
+                              if (
+                                sub.subjectDepartment?.toLowerCase() ===
+                                "general"
+                              )
+                                return true;
 
-                          // Use subjectDepartment instead of department
-                          const filteredSubjects = availableSubjects.filter(
-                            (sub) =>
-                              sub.subjectDepartment?.toLowerCase() ===
-                                "general" ||
-                              sub.subjectDepartment?.toLowerCase() ===
-                                selectedStudent.department?.toLowerCase()
-                          );
+                              // if no student selected, show all subjects
+                              if (selectedStudentIds.length === 0) return true;
 
-                          return filteredSubjects.length > 0 ? (
-                            filteredSubjects.map((sub) => (
+                              // otherwise, filter by department of selected students
+                              return selectedStudentIds.some((id) => {
+                                const student = students.find(
+                                  (s) => s.id === id
+                                );
+                                return (
+                                  student?.department?.toLowerCase() ===
+                                  sub.subjectDepartment?.toLowerCase()
+                                );
+                              });
+                            })
+                            .map((sub) => (
                               <div key={sub.id} className="form-check">
                                 <input
                                   className="form-check-input"
@@ -694,10 +698,9 @@ function StudentSubject() {
                                 </label>
                               </div>
                             ))
-                          ) : (
-                            <p className="text-muted">No subjects available.</p>
-                          );
-                        })()}
+                        ) : (
+                          <p className="text-muted">No subjects available.</p>
+                        )}
                       </div>
                     </div>
                   </div>

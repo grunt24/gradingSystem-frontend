@@ -89,8 +89,8 @@ export default function FinalsGradesTableContent() {
     setClassStandingTotals(csMap);
     setFinalsTotals(finalsMap);
 
-    setQuizCount(maxQuiz);
-    setClassStandingCount(maxCS);
+    setQuizCount(Math.max(1, maxQuiz));
+    setClassStandingCount(Math.max(1, maxCS));
   }, [grades]);
 
   const addQuizColumn = () => setQuizCount((prev) => prev + 1);
@@ -425,7 +425,11 @@ export default function FinalsGradesTableContent() {
         render: (_, record) => (
           <Form.Item
             name={[record.id, field]}
-            initialValue={record[field]}
+            initialValue={
+              record[field] === 0 || record[field] === null
+                ? null
+                : record[field]
+            }
             style={{ margin: 0 }}
           >
             <InputNumber

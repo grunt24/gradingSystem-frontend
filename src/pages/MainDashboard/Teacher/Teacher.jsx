@@ -156,6 +156,10 @@ function Teacher() {
     );
   };
 
+  const toggleSubjects = (teacherId) => {
+    setExpandedTeacherId((prev) => (prev === teacherId ? null : teacherId));
+  };
+
   const filteredTeachers = teachers
     .filter((t) => t.fullname.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => {
@@ -226,23 +230,57 @@ function Teacher() {
           </thead>
           <tbody>
             {displayedTeachers.map((teacher) => (
-              <tr key={teacher.id}>
-                <td>{teacher.fullname}</td>
-                <td>
-                  <button
-                    className="btn btn-sm btn-primary me-2"
-                    onClick={() => openModal(teacher)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => confirmDelete(teacher.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+              <React.Fragment key={teacher.id}>
+                <tr>
+                  <td>{teacher.fullname}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-info me-2"
+                      onClick={() => toggleSubjects(teacher.id)}
+                    >
+                      {expandedTeacherId === teacher.id
+                        ? "Hide Subjects"
+                        : "View Subjects"}
+                    </button>
+
+                    <button
+                      className="btn btn-sm btn-primary me-2"
+                      onClick={() => openModal(teacher)}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => confirmDelete(teacher.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+
+                {/* SUBJECT ROW */}
+                {expandedTeacherId === teacher.id && (
+                  <tr>
+                    <td colSpan="2">
+                      <strong>Assigned Subjects:</strong>
+
+                      {teacher.subjects && teacher.subjects.length > 0 ? (
+                        <ul className="mt-2">
+                          {teacher.subjects.map((sub, index) => (
+                            <li key={index}>
+                              <b>{sub.subjectName}</b> ({sub.subjectCode}) –{" "}
+                              {sub.credits} units
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-2">No subject assigned.</p>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>

@@ -130,7 +130,7 @@ const AcademicPeriods = () => {
       >
         <Table
           rowKey="id"
-          dataSource={academicPeriods}
+          dataSource={periods}
           columns={columns}
           pagination={{ pageSize: 10 }}
           scroll={{ x: "max-content", y: 400 }}

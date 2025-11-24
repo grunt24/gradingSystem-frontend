@@ -242,17 +242,23 @@ export default function StudentsGradesTable() {
               style={{ width: 200 }}
               options={academicPeriods?.map((p) => ({
                 label: `AY ${p.academicYear} ${p.semester}`,
-                value: `${p.academicYear}-${p.semester}`,
+                value: JSON.stringify({
+                  academicYear: p.academicYear,
+                  semester: p.semester,
+                }),
               }))}
               value={
                 selectedAY && selectedSemester
-                  ? `${selectedAY}-${selectedSemester}`
+                  ? JSON.stringify({
+                      academicYear: selectedAY,
+                      semester: selectedSemester,
+                    })
                   : null
               }
               onChange={(val) => {
-                const [year, sem] = val.split("-");
-                setSelectedAY(year);
-                setSelectedSemester(sem);
+                const { academicYear, semester } = JSON.parse(val);
+                setSelectedAY(academicYear);
+                setSelectedSemester(semester);
               }}
             />
 

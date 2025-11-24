@@ -1,11 +1,11 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Login from './pages/Login/Login.jsx';
-import Dashboard from './pages/Dashboard/Dashboard.jsx';
-import MainDashboard from './pages/MainDashboard/MainDashboard.jsx';
+import Login from "./pages/Login/Login.jsx";
+import Dashboard from "./pages/Dashboard/Dashboard.jsx";
+import MainDashboard from "./pages/MainDashboard/MainDashboard.jsx";
 
-import PageLayout from './components/PageLayout.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-import './components/Menulist.css';
+import PageLayout from "./components/PageLayout.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import "./components/Menulist.css";
 import Subjects from "./pages/MainDashboard/Subjects.jsx";
 import Teacher from "./pages/MainDashboard/Teacher/Teacher.jsx";
 import StudentSubject from "./pages/MainDashboard/StudentSubject.jsx";
@@ -16,7 +16,11 @@ import FinalGrade from "./pages/MainDashboard/FinalGrades.jsx";
 import ViewingOfGrades from "./pages/MainDashboard/ViewingOfGrades.jsx";
 import TeacherStudents from "./pages/MainDashboard/Teacher/TeacherStudents.jsx";
 import AcademicPeriods from "./pages/MainDashboard/AcademicPeriods.jsx";
+import AssignSubjectsToTeacher from "./pages/MainDashboard/Teacher/AssignSubjectsToTeacher.jsx";
+import MySubjects from "./pages/MainDashboard/MySubjects.jsx";
 
+import MyCurriculumSubjects from "./pages/MainDashboard/MyCurriculumSubjects.jsx";
+import AddCurriculumSubject from "./pages/MainDashboard/AddCurriculumSubject.jsx";
 const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
@@ -36,9 +40,12 @@ const router = createBrowserRouter([
           { path: "/view-grades", element: <ViewingOfGrades /> },
           { path: "/teacher-students", element: <TeacherStudents /> },
           { path: "/academic-periods", element: <AcademicPeriods /> },
-
+          { path: "/assign-subjects", element: <AssignSubjectsToTeacher /> },
+          { path: "/my-subjects", element: <MySubjects /> },
+          { path: "/curriculum-subjects", element: <MyCurriculumSubjects /> },
+          { path: "/add-curriculum", element: <AddCurriculumSubject /> },
         ],
-      }
+      },
     ],
   },
   { path: "/", element: <Login /> },
