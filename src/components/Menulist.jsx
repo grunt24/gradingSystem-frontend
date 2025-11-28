@@ -74,7 +74,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
   const menuItemsByRole = {
     Student: [
       {
-        key: "students",
+        key: "students_student", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link to="/students" style={{ textDecoration: "none" }}>
@@ -83,7 +83,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "viewing",
+        key: "viewGrades_student", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link to="/view-grades" style={{ textDecoration: "none" }}>
@@ -92,7 +92,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "viewing",
+        key: "mySubjects_student", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link to="/my-subjects" style={{ textDecoration: "none" }}>
@@ -103,7 +103,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
     ],
     Teacher: [
       {
-        key: "dashboard",
+        key: "dashboard_teacher", // UNIQUE KEY
         icon: <HomeFilled />,
         label: (
           <Link to="/main-dashboard" style={{ textDecoration: "none" }}>
@@ -112,12 +112,12 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "students",
+        key: "students_teacher", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/students">Students</Link>,
       },
       {
-        key: "midterm",
+        key: "midterm_teacher", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link to="/midterm" style={{ textDecoration: "none" }}>
@@ -126,7 +126,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "finals",
+        key: "finals_teacher", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link to="/finals" style={{ textDecoration: "none" }}>
@@ -135,7 +135,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "myStudents",
+        key: "myStudents_teacher", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link
@@ -147,10 +147,15 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
           </Link>
         ),
       },
+      {
+        key: "finalCourseGrade_teacher", // UNIQUE KEY
+        icon: <RightOutlined />,
+        label: <Link to="/final-course-grade">Final Course Grade</Link>,
+      },
     ],
     Coordinator: [
       {
-        key: "dashboard",
+        key: "dashboard_coord", // UNIQUE KEY
         icon: <HomeFilled />,
         label: (
           <Link to="/main-dashboard" style={{ textDecoration: "none" }}>
@@ -159,12 +164,12 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "students",
+        key: "students_coord", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/students">Students</Link>,
       },
       {
-        key: "midterm",
+        key: "midterm_coord", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link to="/midterm" style={{ textDecoration: "none" }}>
@@ -173,7 +178,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "finals",
+        key: "finals_coord", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link to="/finals" style={{ textDecoration: "none" }}>
@@ -182,7 +187,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "myStudents",
+        key: "myStudents_coord", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link
@@ -197,7 +202,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
     ],
     Admin: [
       {
-        key: "dashboard",
+        key: "dashboard_admin", // UNIQUE KEY
         icon: <HomeFilled />,
         label: (
           <Link to="/main-dashboard" style={{ textDecoration: "none" }}>
@@ -206,7 +211,7 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "subjects",
+        key: "subjects_admin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: (
           <Link to="/subjects" style={{ textDecoration: "none" }}>
@@ -215,64 +220,74 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         ),
       },
       {
-        key: "teachers",
+        key: "teachers_admin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/teachers">Teachers</Link>,
       },
       {
-        key: "assignSubjects",
+        key: "assignSubjects_admin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/assign-subjects">Assign Subjects</Link>,
       },
       {
-        key: "viewing",
+        key: "viewGrades_admin", // UNIQUE KEY - Replaced original "viewing"
         icon: <RightOutlined />,
         label: <Link to="/view-grades">View Grades</Link>,
       },
       {
-        key: "students",
+        key: "students_admin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/students">Students</Link>,
       },
       {
-        key: "curriculum-subjects",
+        key: "curriculumSubjects_admin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/curriculum-subjects">Curriculum Subjects</Link>,
       },
       {
-        key: "add-curriculum",
+        key: "addCurriculum_admin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/add-curriculum">Add Curriculum</Link>,
       },
-      // {
-      //   key: "academicPeriods",
-      //   icon: <RightOutlined />,
-      //   label: <Link to="/academic-periods">Academic Periods</Link>,
-      // },
+      {
+        key: "academicPeriods_admin", // UNIQUE KEY
+        icon: <RightOutlined />,
+        label: <Link to="/academic-periods">Academic Periods</Link>,
+      },
+      {
+        key: "setGradeSubmission_admin", // UNIQUE KEY - Replaced first "grade-submission"
+        icon: <RightOutlined />,
+        label: <Link to="/grade-submission">Set GradeS Submission</Link>,
+      },
+      {
+        key: "finalCourseGrade_admin", // UNIQUE KEY - Replaced second "grade-submission"
+        icon: <RightOutlined />,
+        label: <Link to="/final-course-grade">Final Course Grade</Link>,
+      },
     ],
     Superadmin: [
       {
-        key: "dashboard",
+        key: "dashboard_superadmin", // UNIQUE KEY
         icon: <HomeFilled />,
         label: <Link to="/main-dashboard">Dashboard</Link>,
       },
       {
-        key: "subjects",
+        key: "subjects_superadmin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/subjects">Subjects</Link>,
       },
       {
-        key: "teachers",
+        key: "teachers_superadmin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/teachers">Teachers</Link>,
       },
       {
-        key: "students",
+        key: "students_superadmin", // UNIQUE KEY
         icon: <RightOutlined />,
         label: <Link to="/students">Students</Link>,
       },
       {
-        key: "viewing",
+        key: "viewGrades_superadmin", // UNIQUE KEY - Replaced "viewing"
         icon: <RightOutlined />,
         label: <Link to="/view-grades">View Grades</Link>,
       },

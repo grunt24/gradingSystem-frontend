@@ -137,11 +137,9 @@ export default function FinalsGradesTableContent() {
             academicYear,
             academicYearId,
             semester,
-            attendanceScore:
-              formItem.attendanceScore ?? student.attendanceScore ?? 0,
-            recitationScore:
-              formItem.recitationScore ?? student.recitationScore ?? 0,
-            projectScore: formItem.projectScore ?? student.projectScore ?? 0,
+attendanceScore: formItem.Attendance ?? student.attendanceScore ?? 0,
+recitationScore: formItem.Recitation ?? student.recitationScore ?? 0,
+projectScore: formItem["Project Score"] ?? student.projectScore ?? 0,
             sepScore:
               student.department?.toUpperCase() === "BSED"
                 ? formItem.sepScore ?? student.sepScore ?? 0
@@ -245,6 +243,11 @@ export default function FinalsGradesTableContent() {
                 >
                   <InputNumber
                     min={0}
+  max={
+    quizTotals[subjectName]?.[quizKey] ??
+    subjectGrades[0]?.quizzes?.[i]?.totalQuizScore ??
+    Infinity
+  }
                     style={{ width: 70 }}
                     placeholder="Score"
                   />
@@ -331,6 +334,11 @@ export default function FinalsGradesTableContent() {
                 >
                   <InputNumber
                     min={0}
+  max={
+    classStandingTotals[subjectName]?.[csKey] ??
+    subjectGrades[0]?.classStandingItems?.[i]?.total ??
+    Infinity
+  }
                     style={{ width: 70 }}
                     placeholder="Score"
                   />
@@ -370,10 +378,37 @@ export default function FinalsGradesTableContent() {
         dataIndex: "studentFullName",
         width: 100,
       },
-      {
+      ...[
+        "Recitation",
+        "Attendance",
+        "Project Score",
+        ...(isBSED ? ["sepScore"] : []),
+      ].map((field) => ({
+        title: field,
+        key: field,
+        render: (_, record) => (
+          <Form.Item
+            name={[record.id, field]}
+            initialValue={
+              record[field] === 0 || record[field] === null
+                ? null
+                : record[field]
+            }
+            style={{ margin: 0 }}
+          >
+            <InputNumber
+              min={0}
+              step={0.01}
+              style={{ width: 60 }}
+              placeholder={field}
+            />
+          </Form.Item>
+        ),
+      })),
+            {
         title: (
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontWeight: "bold" }}>Finals Total</div>
+            <div style={{ fontWeight: "bold" }}>Final Exam Total</div>
             <InputNumber
               min={1}
               value={
@@ -405,6 +440,7 @@ export default function FinalsGradesTableContent() {
               >
                 <InputNumber
                   min={0}
+                    max={finalsTotals[subjectName] ?? subjectGrades[0]?.finalsTotal ?? Infinity}
                   style={{ width: 60 }}
                   placeholder="Score"
                 />
@@ -413,34 +449,6 @@ export default function FinalsGradesTableContent() {
           },
         ],
       },
-
-      ...[
-        "recitationScore",
-        "attendanceScore",
-        "projectScore",
-        ...(isBSED ? ["sepScore"] : []),
-      ].map((field) => ({
-        title: field,
-        key: field,
-        render: (_, record) => (
-          <Form.Item
-            name={[record.id, field]}
-            initialValue={
-              record[field] === 0 || record[field] === null
-                ? null
-                : record[field]
-            }
-            style={{ margin: 0 }}
-          >
-            <InputNumber
-              min={0}
-              step={0.01}
-              style={{ width: 60 }}
-              placeholder={field}
-            />
-          </Form.Item>
-        ),
-      })),
       {
         title: "Total Grade",
         dataIndex: "totalFinalsGrade",

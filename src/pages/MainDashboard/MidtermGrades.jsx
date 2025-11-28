@@ -525,6 +525,7 @@ export default function MidtermGradesTableContent() {
           render: (_, record) => (
             <InputNumber
               min={0}
+                max={totals.quizTotals[i + 1] || Infinity} 
               value={record.quizzes?.[i]?.quizScore || 0}
               onChange={(val) =>
                 handleInputChange(record.id, "quizScore", val, i, null)
@@ -557,6 +558,7 @@ export default function MidtermGradesTableContent() {
           render: (_, record) => (
             <InputNumber
               min={0}
+                              max={totals.classStandingTotals[i + 1] || Infinity} 
               value={record.classStandingItems?.[i]?.score || 0}
               onChange={(val) =>
                 handleInputChange(record.id, "score", val, null, i)
@@ -751,6 +753,7 @@ export default function MidtermGradesTableContent() {
             render: (_, record) => (
               <InputNumber
                 min={0}
+          max={totals.prelimTotal || 0}
                 value={record.prelimScore || 0}
                 onChange={(val) =>
                   handleInputChange(record.id, "prelimScore", val)
@@ -773,6 +776,7 @@ export default function MidtermGradesTableContent() {
                 </div>
                 <InputNumber
                   min={0}
+                  
                   value={totals.midtermTotal || 0}
                   onChange={(val) =>
                     updateTotals(subjectName, "midtermTotal", null, val)
@@ -785,6 +789,7 @@ export default function MidtermGradesTableContent() {
             render: (_, record) => (
               <InputNumber
                 min={0}
+          max={totals.midtermTotal}
                 value={record.midtermScore || 0}
                 onChange={(val) =>
                   handleInputChange(record.id, "midtermScore", val)

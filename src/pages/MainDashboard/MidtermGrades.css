@@ -5,3 +5,41 @@
   font-size: 9px !important;
 }
 
+
+.midterm-table .ant-table {
+  border: 1px solid black;
+}
+
+.midterm-table .ant-table-thead > tr > th {
+  border: 1px solid black !important;
+  background: white !important;
+  font-weight: 700;
+  padding: 6px;
+  text-align: center;
+}
+
+.midterm-table .ant-table-tbody > tr > td {
+  border: 1px solid black !important;
+  padding: 4px;
+  text-align: center;
+}
+
+.midterm-table .ant-table-summary > tr > td {
+  border: 1px solid black !important;
+  font-weight: bold;
+  background: #fafafa;
+  text-align: center;
+}
+
+.header-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.header-group small {
+  font-size: 11px;
+  color: #d4380d;
+  font-weight: 600;
+}

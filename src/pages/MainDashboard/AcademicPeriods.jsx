@@ -13,14 +13,14 @@ import {
   InputNumber,
   Select,
 } from "antd";
-import AcademicPeriodService from "../../api/AcademicPeriodService";
+import academicPeriodService from "../../api/AcademicPeriodService";
 import { PlusOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 const { Option } = Select;
 
 const AcademicPeriods = () => {
-  const [AcademicPeriods, setAcademicPeriods] = useState([]);
+  const [periods, setAcademicPeriods] = useState([]);
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -46,7 +46,7 @@ const AcademicPeriods = () => {
   const handleToggleCurrent = async (record) => {
     setUpdatingId(record.id);
     try {
-      await AcademicPeriodService.updateAcademicPeriod(record.id, {
+      await academicPeriodService.updateAcademicPeriod(record.id, {
         startYear: record.startYear,
         endYear: record.endYear,
         semester: record.semester,
@@ -67,7 +67,7 @@ const AcademicPeriods = () => {
 
   const handleAddPeriod = async (values) => {
     try {
-      await AcademicPeriodService.setCurrentAcademicPeriod(values);
+      await academicPeriodService.setCurrentAcademicPeriod(values);
       message.success(
         `${values.startYear}-${values.endYear} ${values.semester} added and set as current.`
       );

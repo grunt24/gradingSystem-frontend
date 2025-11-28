@@ -11,7 +11,6 @@ function AssignSubjectsToTeacher() {
 
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
-
   const [assignedSubjects, setAssignedSubjects] = useState([]);
 
   useEffect(() => {
@@ -37,29 +36,37 @@ function AssignSubjectsToTeacher() {
     }
   };
 
-  const loadTeacherSubjects = async (teacherId) => {
-    try {
-      const res = await axiosInstance.get(`/Teachers/${teacherId}`);
+const loadTeacherSubjects = async (teacherId) => {
+  try {
+    const res = await axiosInstance.get(`/Teachers/${teacherId}`);
+    const teacher = res.data;
 
-      const teacher = res.data;
+    const assigned = teacher.subjects || [];
 
-      setAssignedSubjects(teacher.subjects || []);
+    setAssignedSubjects(assigned);
 
-      const currentSubjects = (teacher.subjects || [])
-        .map((s) => s.id)
-        .filter((id) => id !== null && id !== undefined);
+    // Map to match the value of the Select (s.id if exists, otherwise subjectCode)
+    const selectedIds = assigned
+      .map(s => s.id ?? s.subjectCode)  // fallback to subjectCode if no id
+      .filter(v => v !== null && v !== undefined);
 
-      setSelectedSubjectIds(currentSubjects);
-    } catch (error) {
-      toast.error("Failed to load teacher’s subjects");
-    }
-  };
+    setSelectedSubjectIds(selectedIds);
+  } catch (error) {
+    toast.error("Failed to load teacher’s subjects");
+  }
+};
+
 
   const handleTeacherChange = async (teacherId) => {
     const teacher = teachers.find((t) => t.id === teacherId);
     setSelectedTeacher(teacher);
 
-    await loadTeacherSubjects(teacherId);
+    if (teacherId) {
+      await loadTeacherSubjects(teacherId);
+    } else {
+      setAssignedSubjects([]);
+      setSelectedSubjectIds([]);
+    }
   };
 
   const handleAssignSubjects = async () => {
@@ -68,74 +75,30 @@ function AssignSubjectsToTeacher() {
       return;
     }
 
-    const cleanSubjectIds = selectedSubjectIds.filter(
-      (id) => id !== null && id !== undefined
-    );
-
     const payload = {
-      fullname: selectedTeacher.fullname,
-      userId: selectedTeacher.userId,
-      subjectIds: cleanSubjectIds,
+      userId: selectedTeacher.id,
+      subjectIds: selectedSubjectIds,
     };
 
     try {
       await axiosInstance.put(`/Teachers/${selectedTeacher.id}`, payload);
-
       toast.success("Subjects updated successfully!");
-
-      // ✅ reload subjects table
-      await loadTeacherSubjects(selectedTeacher.id);
+      await loadTeacherSubjects(selectedTeacher.id); // refresh table
     } catch (error) {
       console.error(error);
       toast.error("Failed to assign subjects");
     }
   };
 
-  // ✅ Table columns
   const subjectColumns = [
-    {
-      title: "Subject Name",
-      dataIndex: "subjectName",
-      key: "subjectName",
-    },
-    {
-      title: "Code",
-      dataIndex: "subjectCode",
-      key: "subjectCode",
-    },
-    {
-      title: "Credits",
-      dataIndex: "credits",
-      key: "credits",
-      align: "center",
-    },
-    {
-      title: "Status",
-      key: "status",
-      render: () => <Tag color="blue">Assigned</Tag>,
-    },
+    { title: "Subject Name", dataIndex: "subjectName", key: "subjectName" },
+    { title: "Code", dataIndex: "subjectCode", key: "subjectCode" },
+    { title: "Credits", dataIndex: "credits", key: "credits", align: "center" },
+    { title: "Status", key: "status", render: () => <Tag color="blue">Assigned</Tag> },
   ];
 
   return (
     <Card title="Assign Subjects to Teacher">
-      {/* ✅ TABLE OF ASSIGNED SUBJECTS */}
-      {selectedTeacher && (
-        <div className="mb-4">
-          <h5 className="fw-bold">
-            Assigned Subjects of {selectedTeacher.fullname}
-          </h5>
-
-          <Table
-            columns={subjectColumns}
-            dataSource={assignedSubjects}
-            rowKey="id"
-            pagination={false}
-            bordered
-          />
-        </div>
-      )}
-
-      {/* Select Teacher */}
       <div className="mb-3">
         <label className="form-label fw-bold">Select Teacher</label>
         <Select
@@ -143,6 +106,7 @@ function AssignSubjectsToTeacher() {
           style={{ width: "100%" }}
           placeholder="Select a teacher"
           onChange={handleTeacherChange}
+          value={selectedTeacher?.id || undefined}
           optionFilterProp="children"
         >
           {teachers.map((t) => (
@@ -153,25 +117,33 @@ function AssignSubjectsToTeacher() {
         </Select>
       </div>
 
-      {/* Assign Subjects */}
       {selectedTeacher && (
         <>
+          <div className="mb-4">
+            <h5 className="fw-bold">Assigned Subjects of {selectedTeacher.fullname}</h5>
+            <Table
+              columns={subjectColumns}
+              dataSource={assignedSubjects}
+              rowKey="id"
+              pagination={false}
+              bordered
+            />
+          </div>
+
           <div className="mb-3">
             <label className="form-label fw-bold">Assign Subjects</label>
             <Select
               mode="multiple"
               style={{ width: "100%" }}
+              placeholder="Select subjects..."
               value={selectedSubjectIds}
               onChange={(values) =>
-                setSelectedSubjectIds(
-                  values.filter((v) => v !== null && v !== undefined)
-                )
+                setSelectedSubjectIds(values.filter((v) => v !== null && v !== undefined))
               }
-              placeholder="Select subjects..."
             >
               {subjects.map((s) => (
                 <Option key={s.id} value={s.id}>
-                  {s.subjectName}
+                  {s.subjectName} ({s.subjectCode})
                 </Option>
               ))}
             </Select>

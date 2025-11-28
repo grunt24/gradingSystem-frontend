@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -12,7 +12,10 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Card, Row, Col, Modal, Table, Button } from "antd";
+import { Card, Row, Col, Modal, Table } from "antd";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import StudentSubject from "./StudentSubject";
 import Teacher from "./Teacher/Teacher";
 import Subjects from "./Subjects";
@@ -28,6 +31,7 @@ function MainDashboard() {
   const [gradeCounts, setGradeCounts] = useState({ valid: 0, invalid: 0 });
   const [studentGroupData, setStudentGroupData] = useState([]);
   const [userRole, setUserRole] = useState("");
+    const fetchedRef = useRef(false); 
   const [yearDeptModal, setYearDeptModal] = useState({
     visible: false,
     students: [],
@@ -46,11 +50,11 @@ function MainDashboard() {
 
   useEffect(() => {
     const fetchUserData = async () => {
+         if (fetchedRef.current) return; // already fetched, skip
+    fetchedRef.current = true;
       try {
         const userDetails = loginService.getUserDetails();
-        if (userDetails?.role) {
-          setUserRole(userDetails.role);
-        }
+        if (userDetails?.role) setUserRole(userDetails.role);
 
         const { data: users } = await axiosInstance.get("/Auth/all-users");
         const { data: studentGroup } = await axiosInstance.get(
@@ -61,16 +65,15 @@ function MainDashboard() {
         const { data: gradeResponse } = await axiosInstance.get(
           "/GradeCalculation/grades-count"
         );
-        if (gradeResponse.success) {
-          setGradeInfo(gradeResponse.data);
-        }
+        if (gradeResponse.success) setGradeInfo(gradeResponse.data);
 
         const roles = { Admin: 0, Teacher: 0, Student: 0 };
         users.forEach((user) => {
           if (user.role === "Superadmin") return;
-          const role = user.role;
-          roles[role] = (roles[role] || 0) + 1;
+          roles[user.role] = (roles[user.role] || 0) + 1;
         });
+        setData(Object.keys(roles).map((role) => ({ role, count: roles[role] })));
+        setRoleCounts(roles);
 
         const gradeCounts = dummyGrades.reduce(
           (acc, g) => {
@@ -80,26 +83,36 @@ function MainDashboard() {
           },
           { valid: 0, invalid: 0 }
         );
-
-        setData(
-          Object.keys(roles).map((role) => ({ role, count: roles[role] }))
-        );
-        setRoleCounts(roles);
         setGradeCounts(gradeCounts);
 
         if (userDetails.role === "Teacher") {
+          // Teacher chart data
           const { data: teacherData } = await axiosInstance.get(
             "/Teachers/my-students"
           );
+          setTeacherChartData(
+            teacherData.map((sub) => ({
+              subjectName: sub.subjectName,
+              studentCount: sub.students?.length || 0,
+            }))
+          );
 
-          const chartData = teacherData.map((sub) => ({
-            subjectName: sub.subjectName,
-            studentCount: sub.students?.length || 0,
-          }));
-          setTeacherChartData(chartData);
+          // Grade submission status notifications
+          const { data: submissionStatus } = await axiosInstance.get(
+            "/AcademicPeriods/grade-submission-status"
+          );
+
+          if (submissionStatus?.midtermMessage) {
+            toast.warning(submissionStatus.midtermMessage, { autoClose: false });
+          }
+
+          if (submissionStatus?.finalsMessage) {
+            toast.warning(submissionStatus.finalsMessage, { autoClose: false });
+          }
         }
       } catch (error) {
         console.error("Failed to fetch users:", error);
+        toast.error("Failed to load dashboard data!", { autoClose: 5000 });
       }
     };
 
@@ -107,11 +120,7 @@ function MainDashboard() {
   }, []);
 
   const columns = [
-    {
-      title: "Student Number",
-      dataIndex: "studentNumber",
-      key: "studentNumber",
-    },
+    { title: "Student Number", dataIndex: "studentNumber", key: "studentNumber" },
     { title: "Full Name", dataIndex: "fullname", key: "fullname" },
     { title: "Department", dataIndex: "department", key: "department" },
     { title: "Year Level", dataIndex: "yearLevel", key: "yearLevel" },
@@ -132,13 +141,13 @@ function MainDashboard() {
 
   return (
     <>
+      <ToastContainer position="top-right" newestOnTop />
+
       <Modal
         title={yearDeptModal.title}
         open={yearDeptModal.visible}
         width={800}
-        onCancel={() =>
-          setYearDeptModal({ visible: false, students: [], title: "" })
-        }
+        onCancel={() => setYearDeptModal({ visible: false, students: [], title: "" })}
         footer={null}
       >
         <Table
@@ -151,13 +160,8 @@ function MainDashboard() {
 
       <Row gutter={[16, 16]} style={{ marginTop: 40 }}>
         {userRole === "Admin" && (
-          <Col
-            xs={24}
-            sm={24}
-            md={12}
-            style={{ display: "flex", flexDirection: "column", gap: 16 }}
-          >
-            <Card title="User Roles Distribution" variant style={{ flex: 1 }}>
+          <Col xs={24} sm={24} md={12} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <Card title="User Roles Distribution" style={{ flex: 1 }}>
               <div style={{ width: "100%", height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -168,14 +172,10 @@ function MainDashboard() {
                       cx="50%"
                       cy="50%"
                       outerRadius={120}
-                      fill="#8884d8"
                       label
                     >
                       {data.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -184,30 +184,18 @@ function MainDashboard() {
                 </ResponsiveContainer>
               </div>
             </Card>
-
+            {/* Midterm / Finals Counts */}
             <Row gutter={[16, 16]}>
               <Col xs={24} sm={12}>
-                <Card title="Calculated Midterm Grade Count" variant>
-                  <div
-                    style={{
-                      fontSize: 24,
-                      textAlign: "center",
-                      padding: "24px 0",
-                    }}
-                  >
+                <Card title="Calculated Midterm Grade Count">
+                  <div style={{ fontSize: 24, textAlign: "center", padding: "24px 0" }}>
                     {gradeInfo.midtermCount}
                   </div>
                 </Card>
               </Col>
               <Col xs={24} sm={12}>
-                <Card title="Calculated Finals Grade Count" variant>
-                  <div
-                    style={{
-                      fontSize: 24,
-                      textAlign: "center",
-                      padding: "24px 0",
-                    }}
-                  >
+                <Card title="Calculated Finals Grade Count">
+                  <div style={{ fontSize: 24, textAlign: "center", padding: "24px 0" }}>
                     {gradeInfo.finalCount}
                   </div>
                 </Card>
@@ -216,60 +204,30 @@ function MainDashboard() {
           </Col>
         )}
 
-        <Col
-          xs={24}
-          sm={24}
-          md={userRole === "Teacher" ? 24 : 12}
-          style={{ display: "flex", flexDirection: "column", gap: 16 }}
-        >
-          {userRole === "Admin" && (
-            <Card variant style={{ flex: 1 }}>
-              <UserEvents />
+        {userRole === "Teacher" && (
+          <Col xs={24} sm={24} md={24} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12}>
+                <Card title="Calculated Midterm Grade Count">
+                  <div style={{ fontSize: 24, textAlign: "center", padding: "24px 0" }}>
+                    {gradeInfo.midtermCount}
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Card title="Calculated Finals Grade Count">
+                  <div style={{ fontSize: 24, textAlign: "center", padding: "24px 0" }}>
+                    {gradeInfo.finalCount}
+                  </div>
+                </Card>
+              </Col>
+            </Row>
+            <Card title="My Students List" className="mt-4">
+              <TeacherStudents />
             </Card>
-          )}
-
-          {userRole === "Teacher" && (
-            <>
-              <Row gutter={[16, 16]}>
-                <Col xs={24} sm={12}>
-                  <Card title="Calculated Midterm Grade Count" variant>
-                    <div
-                      style={{
-                        fontSize: 24,
-                        textAlign: "center",
-                        padding: "24px 0",
-                      }}
-                    >
-                      {gradeInfo.midtermCount}
-                    </div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Card title="Calculated Finals Grade Count" variant>
-                    <div
-                      style={{
-                        fontSize: 24,
-                        textAlign: "center",
-                        padding: "24px 0",
-                      }}
-                    >
-                      {gradeInfo.finalCount}
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
-            </>
-          )}
-        </Col>
+          </Col>
+        )}
       </Row>
-
-      {userRole === "Teacher" && (
-        <Card title="My Students List" className="mt-4" variant={false}>
-          <TeacherStudents />
-        </Card>
-      )}
-
-      {/* REMOVED SUBJECTS & TEACHER MANAGEMENT */}
     </>
   );
 }

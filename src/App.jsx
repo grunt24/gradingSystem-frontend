@@ -21,6 +21,9 @@ import MySubjects from "./pages/MainDashboard/MySubjects.jsx";
 
 import MyCurriculumSubjects from "./pages/MainDashboard/MyCurriculumSubjects.jsx";
 import AddCurriculumSubject from "./pages/MainDashboard/AddCurriculumSubject.jsx";
+import "antd/dist/reset.css";
+import SubmissionOfGrades from "./pages/MainDashboard/SubmissionOfGrades.jsx";
+import FinalCourseGrade from "./pages/MainDashboard/FinalCourseGrade.jsx";
 const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
@@ -44,6 +47,10 @@ const router = createBrowserRouter([
           { path: "/my-subjects", element: <MySubjects /> },
           { path: "/curriculum-subjects", element: <MyCurriculumSubjects /> },
           { path: "/add-curriculum", element: <AddCurriculumSubject /> },
+          { path: "/grade-submission", element: <SubmissionOfGrades /> },
+          { path: "/final-course-grade", element: <FinalCourseGrade /> },
+
+
         ],
       },
     ],
