@@ -50,6 +50,7 @@ export default function MidtermGradesTableContent() {
     useState(null);
   const [availableStudents, setAvailableStudents] = useState([]);
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  
 
   const modifiedGradesRef = useRef(new Map());
 
@@ -181,6 +182,8 @@ export default function MidtermGradesTableContent() {
 
       const lastModifiedId = modifiedIds[modifiedIds.length - 1];
       const modifiedGradePayload = payload.find((p) => p.id === lastModifiedId);
+
+      
 
       console.log("✅ Last modified grade in payload:", {
         id: modifiedGradePayload?.id,
@@ -480,6 +483,13 @@ export default function MidtermGradesTableContent() {
       (g) => g.department?.toUpperCase() === "BSED"
     );
 
+const hasBSED = subjectGrades.some(
+  (g) => g.department?.trim().toUpperCase() === "BSED"
+);
+
+const firstDept = subjectGrades?.[0]?.department?.trim().toUpperCase();
+const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
+
     const quizCount = quizCountBySubject[subjectName] || 1;
     const csCount = classStandingCountBySubject[subjectName] || 1;
     const totals = subjectTotals[subjectName] || {
@@ -525,7 +535,7 @@ export default function MidtermGradesTableContent() {
           render: (_, record) => (
             <InputNumber
               min={0}
-                max={totals.quizTotals[i + 1] || Infinity} 
+              max={totals.quizTotals[i + 1] || Infinity}
               value={record.quizzes?.[i]?.quizScore || 0}
               onChange={(val) =>
                 handleInputChange(record.id, "quizScore", val, i, null)
@@ -558,7 +568,7 @@ export default function MidtermGradesTableContent() {
           render: (_, record) => (
             <InputNumber
               min={0}
-                              max={totals.classStandingTotals[i + 1] || Infinity} 
+              max={totals.classStandingTotals[i + 1] || Infinity}
               value={record.classStandingItems?.[i]?.score || 0}
               onChange={(val) =>
                 handleInputChange(record.id, "score", val, null, i)
@@ -582,21 +592,26 @@ export default function MidtermGradesTableContent() {
         title: "Name",
         dataIndex: "studentFullName",
         key: "studentFullName",
-        // fixed: "left",
-        width: 150, // Reduced from 200
+        fixed: "left",
+        width: 100, // Reduced from 200
       },
-      { title: "QUIZZES", children: quizColumns },
       {
         title: (
-          <Button
-            icon={<PlusOutlined />}
-            size="small"
-            onClick={addQuizColumn}
-          ></Button>
+          <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
+            <span>QUIZZES</span>
+            <Button
+              icon={<PlusOutlined />}
+              size="small"
+              onClick={addQuizColumn}
+            />
+          </div>
         ),
-        align: "center",
-        width: 100, // Reduced from 150
+
         children: [
+          // All Q1, Q2, Q3...
+          ...quizColumns,
+
+          // Total Quiz (right side)
           {
             title: (
               <div style={{ textAlign: "center" }}>
@@ -616,7 +631,7 @@ export default function MidtermGradesTableContent() {
               </div>
             ),
             align: "center",
-            width: 100, // Added fixed width
+            width: 100,
             render: (_, record) => {
               const total = (record.quizzes || []).reduce(
                 (sum, q) => sum + (q.quizScore || 0),
@@ -625,22 +640,75 @@ export default function MidtermGradesTableContent() {
               return <Tag color="blue">{total}</Tag>;
             },
           },
+
+          // PG (last)
+          {
+            title: "PG",
+            width: 80,
+            render: (_, record) => (
+              <Tag color="blue">{record.quizPG?.toFixed(2) || "0.00"}</Tag>
+            ),
+          },
         ],
       },
-
-      { title: "CLASS STANDING", children: classStandingColumns },
+      {
+        title: "30%",
+        width: 80,
+        render: (_, record) => (
+          <Tag color="green">
+            {record.quizWeightedTotal?.toFixed(2) || "0.00"}
+          </Tag>
+        ),
+      },
       {
         title: (
-          <Button
-            icon={<PlusOutlined />}
-            size="small"
-            onClick={addClassStandingColumn}
-          >
-            {/* Add CS */}
-          </Button>
+          <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
+            <span>CLASS STANDING</span>
+            <Button
+              icon={<PlusOutlined />}
+              size="small"
+              onClick={addClassStandingColumn}
+            />
+          </div>
         ),
-        width: 90, // Reduced from 150
+
         children: [
+          // 👉 Recitation (left side)
+          {
+            title: "Rec",
+            width: 80,
+            render: (_, record) => (
+              <InputNumber
+                min={0}
+                value={record.recitationScore || 0}
+                onChange={(val) =>
+                  handleInputChange(record.id, "recitationScore", val)
+                }
+                style={{ width: 60 }}
+              />
+            ),
+          },
+
+          // 👉 Attendance (left side)
+          {
+            title: "Attendance",
+            width: 80,
+            render: (_, record) => (
+              <InputNumber
+                min={0}
+                value={record.attendanceScore || 0}
+                onChange={(val) =>
+                  handleInputChange(record.id, "attendanceScore", val)
+                }
+                style={{ width: 60 }}
+              />
+            ),
+          },
+
+          // All dynamic CS columns
+          ...classStandingColumns,
+
+          // Total CS (right side)
           {
             title: (
               <div style={{ textAlign: "center" }}>
@@ -657,7 +725,7 @@ export default function MidtermGradesTableContent() {
                 </Tag>
               </div>
             ),
-            width: 90, // Added fixed width
+            width: 90,
             render: (_, record) => {
               const total = (record.classStandingItems || []).reduce(
                 (sum, cs) => sum + (cs.score || 0),
@@ -666,55 +734,114 @@ export default function MidtermGradesTableContent() {
               return <Tag color="purple">{total}</Tag>;
             },
           },
+
+          // PG column
+          {
+            title: "PG",
+            width: 80,
+            render: (_, record) => (
+              <Tag color="blue">
+                {record.classStandingPG?.toFixed(2) || "0.00"}
+              </Tag>
+            ),
+          },
+          {
+            title: "AVE",
+            width: 80,
+            render: (_, record) => (
+              <Tag color="blue">
+                {record.classStandingAverage?.toFixed(2) || "0.00"}
+              </Tag>
+            ),
+          },
+
+          // Weighted 20%
         ],
       },
+{
+  title: classStandingPercentTitle,
+  width: 80,
+  render: (_, record) => (
+    <Tag color="green">
+      {record.classStandingWeighted?.toFixed(2) || "0.00"}
+    </Tag>
+  ),
+},
 
+      // {
+      //   title: "Rec",
+      //   width: 80, // Reduced from 100
+      //   render: (_, record) => (
+      //     <InputNumber
+      //       min={0}
+      //       value={record.recitationScore || 0}
+      //       onChange={(val) =>
+      //         handleInputChange(record.id, "recitationScore", val)
+      //       }
+      //       style={{ width: 60 }}
+      //     />
+      //   ),
+      // },
+      // {
+      //   title: "Attendance",
+      //   width: 20, // Reduced from 100
+      //   render: (_, record) => (
+      //     <InputNumber
+      //       min={0}
+      //       value={record.attendanceScore || 0}
+      //       onChange={(val) =>
+      //         handleInputChange(record.id, "attendanceScore", val)
+      //       }
+      //       style={{ width: 60 }}
+      //     />
+      //   ),
+      // },
+  // ...(hasBSED
+  //   ? [
+  //       {
+  //         title: "SEP",
+  //         width: 70,
+  //         align: "center",
+  //         render: (_, record) => (
+  //           <InputNumber
+  //             min={0}
+  //             value={record.sepScore || 0}
+  //             onChange={(val) =>
+  //               handleInputChange(record.id, "sepScore", val)
+  //             }
+  //             style={{ width: 55 }}
+  //           />
+  //         ),
+  //       },
+  //     ]
+  //   : []),
+...(hasBSED
+  ? [
       {
-        title: "Rec",
-        width: 80, // Reduced from 100
-        render: (_, record) => (
-          <InputNumber
-            min={0}
-            value={record.recitationScore || 0}
-            onChange={(val) =>
-              handleInputChange(record.id, "recitationScore", val)
-            }
-            style={{ width: 60 }}
-          />
-        ),
+        title: "SEP",
+        width: 70,
+        align: "center",
+        render: (_, record) => {
+          if (record.department?.trim().toUpperCase() !== "BSED") {
+            return null; // hides the cell for non-BSED
+          }
+          return (
+            <InputNumber
+              min={0}
+              value={record.sepScore || 0}
+              onChange={(val) =>
+                handleInputChange(record.id, "sepScore", val)
+              }
+              style={{ width: 55 }}
+            />
+          );
+        },
       },
-      {
-        title: "Attendance",
-        width: 20, // Reduced from 100
-        render: (_, record) => (
-          <InputNumber
-            min={0}
-            value={record.attendanceScore || 0}
-            onChange={(val) =>
-              handleInputChange(record.id, "attendanceScore", val)
-            }
-            style={{ width: 60 }}
-          />
-        ),
-      },
-      ...(isBSED
-        ? [
-            {
-              title: "SEP",
-              width: 70, // Reduced from 100
-              render: (_, record) => (
-                <InputNumber
-                  min={0}
-                  value={record.sepScore || 0}
-                  onChange={(val) =>
-                    handleInputChange(record.id, "sepScore", val)
-                  }
-                  style={{ width: 55 }}
-                />
-              ),
-            },
-          ]
-        : []),
+    ]
+  : []),
+
+
+
       {
         title: "Project",
         width: 70, // Reduced from 100
@@ -736,16 +863,16 @@ export default function MidtermGradesTableContent() {
           {
             title: (
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontWeight: "bold", fontSize: 12 }}>
+                {/* <div style={{ fontWeight: "bold", fontSize: 12 }}>
                   Prelim Total
-                </div>
+                </div> */}
                 <InputNumber
                   min={0}
                   value={totals.prelimTotal || 0}
                   onChange={(val) =>
                     updateTotals(subjectName, "prelimTotal", null, val)
                   }
-                  style={{ width: 60 }}
+                  style={{ width: 50 }}
                 />
               </div>
             ),
@@ -753,7 +880,7 @@ export default function MidtermGradesTableContent() {
             render: (_, record) => (
               <InputNumber
                 min={0}
-          max={totals.prelimTotal || 0}
+                max={totals.prelimTotal || 0}
                 value={record.prelimScore || 0}
                 onChange={(val) =>
                   handleInputChange(record.id, "prelimScore", val)
@@ -771,12 +898,11 @@ export default function MidtermGradesTableContent() {
           {
             title: (
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontWeight: "bold", fontSize: 12 }}>
+                {/* <div style={{ fontWeight: "bold", fontSize: 12 }}>
                   Midterm Total
-                </div>
+                </div> */}
                 <InputNumber
                   min={0}
-                  
                   value={totals.midtermTotal || 0}
                   onChange={(val) =>
                     updateTotals(subjectName, "midtermTotal", null, val)
@@ -789,7 +915,7 @@ export default function MidtermGradesTableContent() {
             render: (_, record) => (
               <InputNumber
                 min={0}
-          max={totals.midtermTotal}
+                max={totals.midtermTotal}
                 value={record.midtermScore || 0}
                 onChange={(val) =>
                   handleInputChange(record.id, "midtermScore", val)
@@ -804,7 +930,8 @@ export default function MidtermGradesTableContent() {
       {
         title: (
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontWeight: "bold", fontSize: 12 }}>Total Score</div>
+            {/* <div style={{ fontWeight: "bold", fontSize: 12 }}>Total Score</div> */}
+            <div style={{ fontWeight: "bold", fontSize: 12 }}>TS</div>
             <Tag
               color="green"
               style={{ fontWeight: 600, marginTop: 4, fontSize: 11 }}
@@ -813,7 +940,7 @@ export default function MidtermGradesTableContent() {
             </Tag>
           </div>
         ),
-        width: 90, // Reduced from 120
+        width: 60, // Reduced from 120
         render: (_, record) => {
           const prelim = record.prelimScore || 0;
           const midterm = record.midtermScore || 0;
@@ -827,11 +954,11 @@ export default function MidtermGradesTableContent() {
       },
 
       {
-        title: "Midterm Grade",
+        title: "Grade",
         dataIndex: "totalMidtermGrade",
         key: "totalMidtermGrade",
-        // fixed: "right",
-        width: 100, // Reduced from 120
+        fixed: "right",
+        width: 60, // Reduced from 120
         render: (val) => (
           <strong style={{ color: "#1890ff" }}>
             {val?.toFixed(2) || "0.00"}
@@ -839,11 +966,11 @@ export default function MidtermGradesTableContent() {
         ),
       },
       {
-        title: "Equivalent",
+        title: "Equiv",
         dataIndex: "gradePointEquivalent",
         key: "gradePointEquivalent",
         // fixed: "right",
-        width: 90, // Reduced from 100
+        width: 60, // Reduced from 100
         render: (val) => (
           <strong style={{ color: "#52c41a" }}>
             {val?.toFixed(2) || "0.00"}
@@ -882,7 +1009,7 @@ export default function MidtermGradesTableContent() {
         }
         style={{ marginBottom: 32 }}
       >
-        <Table
+        {/* <Table
           rowKey="id"
           className="midterm-table"
           dataSource={subjectGrades}
@@ -892,7 +1019,21 @@ export default function MidtermGradesTableContent() {
           style={{ textAlign: "center", width: "100%" }}
           // tableLayout="fixed"
           // bordered
-        />
+        /> */}
+
+<div style={{ overflowX: "auto" }}>
+  <Table
+          className="midterm-table"
+    columns={columns}
+    dataSource={subjectGrades}
+    pagination={false}
+    bordered
+    scroll={{ x: "max-content" }}
+  />
+</div>
+
+
+        
       </Card>
     );
   };

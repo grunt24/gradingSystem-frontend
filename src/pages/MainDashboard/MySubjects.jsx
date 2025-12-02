@@ -3,16 +3,10 @@ import { Table, Select, Typography, Card, Spin, message } from "antd";
 import axios from "axios";
 import loginService from "../../api/loginService";
 import academicPeriodService from "../../api/AcademicPeriodService";
+import axiosInstance from "../../api/axiosInstance";
 
 const { Title } = Typography;
 const { Option } = Select;
-
-const axiosInstance = axios.create({
-  baseURL: "https://localhost:7255/api",
-  headers: {
-    Authorization: `Bearer ${loginService.getToken()}`,
-  },
-});
 
 const MySubjects = () => {
   const [loading, setLoading] = useState(false);

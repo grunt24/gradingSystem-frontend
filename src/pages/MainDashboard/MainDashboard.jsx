@@ -204,6 +204,13 @@ function MainDashboard() {
           </Col>
         )}
 
+          {userRole === "Admin" && (
+            <Card variant style={{ flex: 1 }}>
+              <UserEvents />
+
+            </Card>
+          )}
+
         {userRole === "Teacher" && (
           <Col xs={24} sm={24} md={24} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Row gutter={[16, 16]}>

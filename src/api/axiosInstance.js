@@ -5,8 +5,8 @@ const getApiBaseUrl = () => {
   // return isLocalhost
   //   ? 'https://localhost:7255/api'
   //   : 'http://bcasgradesystemapi.runasp.net/api';
-// return 'http://bcasgradesystemapi.runasp.net/api';
-return 'https://localhost:7255/api';
+return 'http://bcasgradesystemapi.runasp.net/api';
+// return 'https://localhost:7255/api';
 
 
 };
