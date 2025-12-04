@@ -73,15 +73,15 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
   // Menu for all roles
   const menuItemsByRole = {
     Student: [
-      {
-        key: "students_student", // UNIQUE KEY
-        icon: <RightOutlined />,
-        label: (
-          <Link to="/students" style={{ textDecoration: "none" }}>
-            Students
-          </Link>
-        ),
-      },
+      // {
+      //   key: "students_student", // UNIQUE KEY
+      //   icon: <RightOutlined />,
+      //   label: (
+      //     <Link to="/students" style={{ textDecoration: "none" }}>
+      //       Students
+      //     </Link>
+      //   ),
+      // },
       {
         key: "viewGrades_student", // UNIQUE KEY
         icon: <RightOutlined />,

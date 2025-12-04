@@ -195,11 +195,17 @@ export default function MidtermGradesTableContent() {
         totalMidtermGrade: modifiedGradePayload?.totalMidtermGrade,
       });
 
-      await axiosInstance.put(`${UPDATE_API_URL}/batch-update`, payload);
+await axiosInstance.put(`${UPDATE_API_URL}/batch-update`, payload);
 
-      modifiedGradesRef.current.clear();
+// ⏳ Wait 2 seconds before triggering midterm recalculation
+await new Promise(resolve => setTimeout(resolve, 2000));
 
-      message.success("✅ Grades saved successfully!");
+// 🔥 Call your calculate-midterm-all endpoint
+await axiosInstance.post(`${UPDATE_API_URL}/calculate-midterm-all`);
+
+modifiedGradesRef.current.clear();
+message.success("✅ Grades saved & midterm recalculated!");
+
     } catch (err) {
       message.error(
         "❌ Failed to save: " + (err.response?.data?.message || err.message)

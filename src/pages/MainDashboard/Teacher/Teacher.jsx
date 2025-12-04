@@ -102,7 +102,10 @@ function Teacher() {
       if (editing) {
         await axiosInstance.put(`/Teachers/${editing.id}`, payload);
       } else {
-        await axiosInstance.post(`/Teachers/create-teacher`, payload);
+
+        // await axiosInstance.post(`/Teachers/create-teacher`, payload);
+
+        await axiosInstance.post(`/Teachers/create-teacher-with-subjects`, payload);
       }
 
       toast.success(`Teacher ${editing ? "updated" : "created"} successfully!`);

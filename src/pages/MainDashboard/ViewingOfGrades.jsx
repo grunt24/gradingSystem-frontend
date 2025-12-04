@@ -29,6 +29,7 @@ export default function StudentsGradesTable() {
   const [calculating, setCalculating] = useState(false);
   const [userRole, setUserRole] = useState("");
   const [academicPeriods, setAcademicPeriods] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
   // ✅ Updated: fetch from AcademicPeriods endpoint
   const fetchYearSemesterFilters = async () => {
@@ -139,84 +140,88 @@ export default function StudentsGradesTable() {
     setSelectedStudent(null);
   };
 
-  const columns = [
-    {
-      title: "Student Name",
-      dataIndex: "studentFullName",
-      key: "studentFullName",
-    },
-    { title: "Year Level", dataIndex: "yearLevel", key: "yearLevel" },
+const columns = [
+  {
+    title: "Subjects Count",
+    key: "count",
+    width: 120,
+    render: (_, record) => record.subjects?.length ?? 0,
+  },
 
-    ...(userRole === "Admin"
-      ? [
-          {
-            title: "Midterm Visible",
-            key: "midtermVisible",
-            render: (_, record) => (
-              <Switch
-                checkedChildren="Shown"
-                unCheckedChildren="Hidden"
-                checked={record.subjects.every((s) => s.midterm?.isVisible)}
-                disabled={userRole !== "Admin"}
-                onChange={async (checked) => {
-                  try {
-                    await axiosInstance.put(
-                      `/ReleaseGrades/toggle-visibility?userId=${record.studentId}&isVisible=${checked}&gradeType=midterm`
-                    );
-                    message.success(
-                      `Midterm grade for ${record.studentFullName} ${
-                        checked ? "shown" : "hidden"
-                      }.`
-                    );
-                    fetchGrades(selectedAY, selectedSemester);
-                  } catch {
-                    message.error("Failed to update midterm visibility.");
-                  }
-                }}
-              />
-            ),
-          },
+  {
+    title: "Subjects",
+    key: "subjects",
+    render: (_, record) => (
+      <div>
+        {record.subjects?.map((s, i) => (
+          <div key={i}>
+            {s.subjectName} ({s.subjectCode})
+          </div>
+        ))}
+      </div>
+    ),
+  },
 
-          // ✅ Finals Toggle Column
-          {
-            title: "Finals Visible",
-            key: "finalsVisible",
-            render: (_, record) => (
-              <Switch
-                checkedChildren="Shown"
-                unCheckedChildren="Hidden"
-                checked={record.subjects.every((s) => s.finals?.isVisible)}
-                disabled={userRole !== "Admin"}
-                onChange={async (checked) => {
-                  try {
-                    await axiosInstance.put(
-                      `/ReleaseGrades/toggle-visibility?userId=${record.studentId}&isVisible=${checked}&gradeType=finals`
-                    );
-                    message.success(
-                      `Finals grade for ${record.studentFullName} ${
-                        checked ? "shown" : "hidden"
-                      }.`
-                    );
-                    fetchGrades(selectedAY, selectedSemester);
-                  } catch {
-                    message.error("Failed to update finals visibility.");
-                  }
-                }}
-              />
-            ),
-          },
-        ]
-      : []),
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Button type="primary" onClick={() => handleViewGrades(record)}>
-          View Grades
-        </Button>
-      ),
-    },
-  ];
+  ...(userRole === "Admin"
+    ? [
+        {
+          title: "Midterm Visible",
+          key: "midtermVisible",
+          render: (_, record) => (
+            <Switch
+              checkedChildren="Shown"
+              unCheckedChildren="Hidden"
+              checked={record.subjects.every((s) => s.midterm?.isVisible)}
+              onChange={async (checked) => {
+                try {
+                  await axiosInstance.put(
+                    `/ReleaseGrades/toggle-visibility?userId=${record.studentId}&isVisible=${checked}&gradeType=midterm`
+                  );
+                  message.success("Midterm visibility updated.");
+                  fetchGrades(selectedAY, selectedSemester);
+                } catch {
+                  message.error("Failed to update midterm visibility.");
+                }
+              }}
+            />
+          ),
+        },
+        {
+          title: "Finals Visible",
+          key: "finalsVisible",
+          render: (_, record) => (
+            <Switch
+              checkedChildren="Shown"
+              unCheckedChildren="Hidden"
+              checked={record.subjects.every((s) => s.finals?.isVisible)}
+              onChange={async (checked) => {
+                try {
+                  await axiosInstance.put(
+                    `/ReleaseGrades/toggle-visibility?userId=${record.studentId}&isVisible=${checked}&gradeType=finals`
+                  );
+                  message.success("Finals visibility updated.");
+                  fetchGrades(selectedAY, selectedSemester);
+                } catch {
+                  message.error("Failed to update finals visibility.");
+                }
+              }}
+            />
+          ),
+        },
+      ]
+    : []),
+
+  {
+    title: "Action",
+    key: "action",
+    render: (_, record) => (
+      <Button type="primary" onClick={() => handleViewGrades(record)}>
+        View Details
+      </Button>
+    ),
+  },
+];
+
 
   const quizColumns = [
     { title: "Quiz", dataIndex: "label", key: "label" },
@@ -316,194 +321,284 @@ export default function StudentsGradesTable() {
           </Space>
         </div>
 
-        <Tabs
-          type="card"
-          items={Object.entries(studentsByDept).map(([dept, yearLevels]) => ({
-            key: dept,
-            label: dept,
-            children: (
-              <Tabs
-                type="line"
-                items={Object.entries(yearLevels).map(([year, students]) => ({
-                  key: year,
-                  label: year,
-                  children: (
-                    <Table
-                      columns={columns}
-                      dataSource={students}
-                      rowKey="studentId"
-                      loading={loading}
-                      pagination={{ pageSize: 10 }}
-                      scroll={{ x: "max-content" }}
-                    />
-                  ),
-                }))}
-              />
-            ),
-          }))}
-        />
+<Tabs
+  type="card"
+  items={Object.entries(studentsByDept).map(([dept, yearLevels]) => ({
+    key: dept,
+    label: dept,
+    children: (
+      <Tabs
+        type="line"
+        items={Object.entries(yearLevels).map(([year, students]) => ({
+          key: year,
+          label: year,
+          children: (
+            <div style={{ padding: 10 }}>
+              {students.map((student) => (
+                <Card
+                  key={student.studentId}
+                  title={student.studentFullName}
+                  style={{ marginBottom: 16 }}
+                  bordered
+                >
+                  <Table
+                    dataSource={student.subjects.map((s, index) => ({
+                      key: index,
+                      index: index + 1,
+                      subjectName: s.subjectName,
+                      subjectCode: s.subjectCode,
+                      midterm: s.midterm,
+                      finals: s.finals,
+                      raw: s,
+                    }))}
+                    columns={[
+                      {
+                        title: "#",
+                        dataIndex: "index",
+                        width: 60,
+                      },
+                      {
+                        title: "Subject",
+                        dataIndex: "subjectName",
+                      },
+                      {
+                        title: "Action",
+                        render: (_, record) => (
+                          <Button
+                            type="primary"
+                            onClick={() => setSelectedSubject(record.raw)}
+                          >
+                            View Details
+                          </Button>
+                        ),
+                      },
+                    ]}
+                    pagination={false}
+                  />
+                </Card>
+              ))}
+            </div>
+          ),
+        }))}
+      />
+    ),
+  }))}
+/>
 
-        <Modal
-          title={
-            selectedStudent
-              ? `${selectedStudent.studentFullName}'s Grades`
-              : "Grades"
-          }
-          open={isModalVisible}
-          onCancel={handleClose}
-          footer={null}
-          width={800}
-        >
-          {selectedStudent && (
-            <Tabs
-              type="card"
-              items={selectedStudent.subjects.map((subject, idx) => ({
-                key: idx,
-                label: `${subject.subjectName} (${subject.subjectCode})`,
-                children: (
-                  <Row gutter={16}>
-                    <Col xs={24} md={12}>
-                      <Card title="Midterm Breakdown" variant="outlined">
-                        {subject.midterm ? (
-                          <>
-                            <p>
-                              <strong>Calculated Midterm Grade:</strong>{" "}
-                              {subject.midterm.totalMidtermGrade ??
-                                "Not Yet Released"}
-                            </p>
-                            <p>
-                              <strong>Rounded Midterm Grade:</strong>{" "}
-                              {subject.midterm.totalMidtermGradeRounded ??
-                                "Not Yet Released"}
-                            </p>
-                            <p>
-                              <strong>Grade Point Equivalent:</strong>{" "}
-                              {subject.midterm.gradePointEquivalent ??
-                                "Not Yet Released"}
-                            </p>
-                            <p>
-                              <strong>Quiz PG:</strong>{" "}
-                              {subject.midterm.quizPG ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>Recitation:</strong>{" "}
-                              {subject.midterm.recitationScore ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>Attendance:</strong>{" "}
-                              {subject.midterm.attendanceScore ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>Class Standing PG:</strong>{" "}
-                              {subject.midterm.classStandingPG ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>Project:</strong>{" "}
-                              {subject.midterm.projectScore ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>SEP:</strong>{" "}
-                              {subject.midterm.sepScore ?? "N/A"}
-                            </p>
 
-                            {subject.midterm.quizzes?.length > 0 && (
-                              <Table
-                                columns={quizColumns}
-                                dataSource={subject.midterm.quizzes}
-                                pagination={false}
-                                rowKey="id"
-                                size="small"
-                              />
-                            )}
-                            {subject.midterm.classStandingItems?.length > 0 && (
-                              <Table
-                                columns={classItemsColumns}
-                                dataSource={subject.midterm.classStandingItems}
-                                pagination={false}
-                                rowKey="id"
-                                size="small"
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <p>No midterm data available.</p>
-                        )}
-                      </Card>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Card title="Finals Breakdown" variant="outlined">
-                        {subject.finals ? (
-                          <>
-                            <p>
-                              <strong>Calculated Finals Grade:</strong>{" "}
-                              {subject.finals.totalFinalsGrade ??
-                                "Not Yet Released"}
-                            </p>
-                            <p>
-                              <strong>Rounded Finals Grade:</strong>{" "}
-                              {subject.finals.totalFinalsGradeRounded ??
-                                "Not Yet Released"}
-                            </p>
-                            <p>
-                              <strong>Grade Point Equivalent:</strong>{" "}
-                              {subject.finals.gradePointEquivalent ??
-                                "Not Yet Released"}
-                            </p>
-                            <p>
-                              <strong>Quiz PG:</strong>{" "}
-                              {subject.finals.quizPG ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>Recitation:</strong>{" "}
-                              {subject.finals.recitationScore ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>Attendance:</strong>{" "}
-                              {subject.finals.attendanceScore ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>Class Standing PG:</strong>{" "}
-                              {subject.finals.classStandingPG ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>Project:</strong>{" "}
-                              {subject.finals.projectScore ?? "N/A"}
-                            </p>
-                            <p>
-                              <strong>SEP:</strong>{" "}
-                              {subject.finals.sepScore ?? "N/A"}
-                            </p>
+<Modal
+  title={
+    selectedStudent
+      ? `${selectedStudent.studentFullName}'s Subjects`
+      : "Subjects"
+  }
+  open={isModalVisible}
+  onCancel={handleClose}
+  footer={null}
+  width={700}
+>
+  {selectedStudent && (
+    <Table
+      dataSource={selectedStudent.subjects.map((s, index) => ({
+        key: index,
+        index: index + 1,
+        subjectName: s.subjectName,
+        subjectCode: s.subjectCode,
+        midterm: s.midterm,
+        finals: s.finals,
+        raw: s,
+      }))}
+      columns={[
+        {
+          title: "#",
+          dataIndex: "index",
+          width: 60,
+        },
+        {
+          title: "Subject",
+          dataIndex: "subjectName",
+        },
+        {
+          title: "Action",
+          render: (_, record) => (
+            <Button
+              type="primary"
+              onClick={() => setSelectedSubject(record.raw)}
+            >
+              View Details
+            </Button>
+          ),
+        },
+      ]}
+      pagination={false}
+    />
+  )}
 
-                            {subject.finals.quizzes?.length > 0 && (
-                              <Table
-                                columns={quizColumns}
-                                dataSource={subject.finals.quizzes}
-                                pagination={false}
-                                rowKey="id"
-                                size="small"
-                              />
-                            )}
-                            {subject.finals.classStandingItems?.length > 0 && (
-                              <Table
-                                columns={classItemsColumns}
-                                dataSource={subject.finals.classStandingItems}
-                                pagination={false}
-                                rowKey="id"
-                                size="small"
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <p>No finals data available.</p>
-                        )}
-                      </Card>
-                    </Col>
-                  </Row>
-                ),
-              }))}
-            />
-          )}
-        </Modal>
+  {/* SUBJECT DETAILS MODAL */}
+
+</Modal>
+
+  <Modal
+    open={!!selectedSubject}
+    onCancel={() => setSelectedSubject(null)}
+    footer={null}
+    width={900}
+    title={
+      selectedSubject
+        ? `${selectedSubject.subjectName} (${selectedSubject.subjectCode})`
+        : ""
+    }
+  >
+    {selectedSubject && (
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Card title="Midterm Breakdown" bordered>
+            {selectedSubject.midterm ? (
+              <>
+                <p>
+                  <strong>Calculated Midterm Grade:</strong>{" "}
+                  {selectedSubject.midterm.totalMidtermGrade ??
+                    "Not Yet Released"}
+                </p>
+                <p>
+                  <strong>Rounded Midterm Grade:</strong>{" "}
+                  {selectedSubject.midterm.totalMidtermGradeRounded ??
+                    "Not Yet Released"}
+                </p>
+                <p>
+                  <strong>Grade Point Equivalent:</strong>{" "}
+                  {selectedSubject.midterm.gradePointEquivalent ??
+                    "Not Yet Released"}
+                </p>
+                <p>
+                  <strong>Quiz PG:</strong>{" "}
+                  {selectedSubject.midterm.quizPG ?? "N/A"}
+                </p>
+                <p>
+                  <strong>Recitation:</strong>{" "}
+                  {selectedSubject.midterm.recitationScore ?? "N/A"}
+                </p>
+                <p>
+                  <strong>Attendance:</strong>{" "}
+                  {selectedSubject.midterm.attendanceScore ?? "N/A"}
+                </p>
+                <p>
+                  <strong>Class Standing PG:</strong>{" "}
+                  {selectedSubject.midterm.classStandingPG ?? "N/A"}
+                </p>
+                <p>
+                  <strong>Project:</strong>{" "}
+                  {selectedSubject.midterm.projectScore ?? "N/A"}
+                </p>
+                <p>
+                  <strong>SEP:</strong>{" "}
+                  {selectedSubject.midterm.sepScore ?? "N/A"}
+                </p>
+
+                {selectedSubject.midterm.quizzes?.length > 0 && (
+                  <Table
+                    columns={quizColumns}
+                    dataSource={selectedSubject.midterm.quizzes}
+                    pagination={false}
+                    rowKey="id"
+                    size="small"
+                  />
+                )}
+
+                {selectedSubject.midterm.classStandingItems?.length > 0 && (
+                  <Table
+                    columns={classItemsColumns}
+                    dataSource={
+                      selectedSubject.midterm.classStandingItems
+                    }
+                    pagination={false}
+                    rowKey="id"
+                    size="small"
+                  />
+                )}
+              </>
+            ) : (
+              <p>No midterm data available.</p>
+            )}
+          </Card>
+        </Col>
+
+        <Col xs={24} md={12}>
+          <Card title="Finals Breakdown" bordered>
+            {selectedSubject.finals ? (
+              <>
+                <p>
+                  <strong>Calculated Finals Grade:</strong>{" "}
+                  {selectedSubject.finals.totalFinalsGrade ??
+                    "Not Yet Released"}
+                </p>
+                <p>
+                  <strong>Rounded Finals Grade:</strong>{" "}
+                  {selectedSubject.finals.totalFinalsGradeRounded ??
+                    "Not Yet Released"}
+                </p>
+                <p>
+                  <strong>Grade Point Equivalent:</strong>{" "}
+                  {selectedSubject.finals.gradePointEquivalent ??
+                    "Not Yet Released"}
+                </p>
+                <p>
+                  <strong>Quiz PG:</strong>{" "}
+                  {selectedSubject.finals.quizPG ?? "N/A"}
+                </p>
+                <p>
+                  <strong>Recitation:</strong>{" "}
+                  {selectedSubject.finals.recitationScore ?? "N/A"}
+                </p>
+                <p>
+                  <strong>Attendance:</strong>{" "}
+                  {selectedSubject.finals.attendanceScore ?? "N/A"}
+                </p>
+                <p>
+                  <strong>Class Standing PG:</strong>{" "}
+                  {selectedSubject.finals.classStandingPG ?? "N/A"}
+                </p>
+                <p>
+                  <strong>Project:</strong>{" "}
+                  {selectedSubject.finals.projectScore ?? "N/A"}
+                </p>
+                <p>
+                  <strong>SEP:</strong>{" "}
+                  {selectedSubject.finals.sepScore ?? "N/A"}
+                </p>
+
+                {selectedSubject.finals.quizzes?.length > 0 && (
+                  <Table
+                    columns={quizColumns}
+                    dataSource={selectedSubject.finals.quizzes}
+                    pagination={false}
+                    rowKey="id"
+                    size="small"
+                  />
+                )}
+
+                {selectedSubject.finals.classStandingItems?.length > 0 && (
+                  <Table
+                    columns={classItemsColumns}
+                    dataSource={
+                      selectedSubject.finals.classStandingItems
+                    }
+                    pagination={false}
+                    rowKey="id"
+                    size="small"
+                  />
+                )}
+              </>
+            ) : (
+              <p>No finals data available.</p>
+            )}
+          </Card>
+        </Col>
+      </Row>
+    )}
+  </Modal>
+
+
       </div>
     </Card>
   );
