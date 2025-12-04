@@ -15,6 +15,7 @@ import {
 } from "antd";
 import axiosInstance from "../../api/axiosInstance";
 import loginService from "../../api/loginService";
+import "./ViewingOfGrades.css";
 
 export default function StudentsGradesTable() {
   const [studentsByDept, setStudentsByDept] = useState({});
@@ -30,6 +31,7 @@ export default function StudentsGradesTable() {
   const [userRole, setUserRole] = useState("");
   const [academicPeriods, setAcademicPeriods] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
+  const [activeTab, setActiveTab] = useState("midterm");
 
   // ✅ Updated: fetch from AcademicPeriods endpoint
   const fetchYearSemesterFilters = async () => {
@@ -451,149 +453,203 @@ const columns = [
   >
     {selectedSubject && (
       <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Card title="Midterm Breakdown" bordered>
-            {selectedSubject.midterm ? (
-              <>
-                <p>
-                  <strong>Calculated Midterm Grade:</strong>{" "}
-                  {selectedSubject.midterm.totalMidtermGrade ??
-                    "Not Yet Released"}
-                </p>
-                <p>
-                  <strong>Rounded Midterm Grade:</strong>{" "}
-                  {selectedSubject.midterm.totalMidtermGradeRounded ??
-                    "Not Yet Released"}
-                </p>
-                <p>
-                  <strong>Grade Point Equivalent:</strong>{" "}
-                  {selectedSubject.midterm.gradePointEquivalent ??
-                    "Not Yet Released"}
-                </p>
-                <p>
-                  <strong>Quiz PG:</strong>{" "}
-                  {selectedSubject.midterm.quizPG ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Recitation:</strong>{" "}
-                  {selectedSubject.midterm.recitationScore ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Attendance:</strong>{" "}
-                  {selectedSubject.midterm.attendanceScore ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Class Standing PG:</strong>{" "}
-                  {selectedSubject.midterm.classStandingPG ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Project:</strong>{" "}
-                  {selectedSubject.midterm.projectScore ?? "N/A"}
-                </p>
-                <p>
-                  <strong>SEP:</strong>{" "}
-                  {selectedSubject.midterm.sepScore ?? "N/A"}
-                </p>
+<div class="grade-tabs">
+  <div class="tab-header">
+    <button
+      class={`tab-btn ${activeTab === "midterm" ? "active" : ""}`}
+      onClick={() => setActiveTab("midterm")}
+    >
+      Midterm Breakdown
+    </button>
 
-                {selectedSubject.midterm.quizzes?.length > 0 && (
-                  <Table
-                    columns={quizColumns}
-                    dataSource={selectedSubject.midterm.quizzes}
-                    pagination={false}
-                    rowKey="id"
-                    size="small"
-                  />
-                )}
+    <button
+      class={`tab-btn ${activeTab === "finals" ? "active" : ""}`}
+      onClick={() => setActiveTab("finals")}
+    >
+      Finals Breakdown
+    </button>
+  </div>
 
-                {selectedSubject.midterm.classStandingItems?.length > 0 && (
-                  <Table
-                    columns={classItemsColumns}
-                    dataSource={
-                      selectedSubject.midterm.classStandingItems
-                    }
-                    pagination={false}
-                    rowKey="id"
-                    size="small"
-                  />
-                )}
-              </>
-            ) : (
-              <p>No midterm data available.</p>
-            )}
-          </Card>
-        </Col>
+  <div class="tab-body">
+    {/* MIDTERM TAB */}
+    {activeTab === "midterm" && (
+<div class="grade-panel">
+  <h3 class="panel-title">Midterm Breakdown</h3>
 
-        <Col xs={24} md={12}>
-          <Card title="Finals Breakdown" bordered>
-            {selectedSubject.finals ? (
-              <>
-                <p>
-                  <strong>Calculated Finals Grade:</strong>{" "}
-                  {selectedSubject.finals.totalFinalsGrade ??
-                    "Not Yet Released"}
-                </p>
-                <p>
-                  <strong>Rounded Finals Grade:</strong>{" "}
-                  {selectedSubject.finals.totalFinalsGradeRounded ??
-                    "Not Yet Released"}
-                </p>
-                <p>
-                  <strong>Grade Point Equivalent:</strong>{" "}
-                  {selectedSubject.finals.gradePointEquivalent ??
-                    "Not Yet Released"}
-                </p>
-                <p>
-                  <strong>Quiz PG:</strong>{" "}
-                  {selectedSubject.finals.quizPG ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Recitation:</strong>{" "}
-                  {selectedSubject.finals.recitationScore ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Attendance:</strong>{" "}
-                  {selectedSubject.finals.attendanceScore ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Class Standing PG:</strong>{" "}
-                  {selectedSubject.finals.classStandingPG ?? "N/A"}
-                </p>
-                <p>
-                  <strong>Project:</strong>{" "}
-                  {selectedSubject.finals.projectScore ?? "N/A"}
-                </p>
-                <p>
-                  <strong>SEP:</strong>{" "}
-                  {selectedSubject.finals.sepScore ?? "N/A"}
-                </p>
+  {selectedSubject.midterm ? (
+    <>
+      {/* Summary Section */}
+      <div class="grade-summary">
+        <div class="summary-box">
+          <label>Calculated Grade</label>
+          <div class="value">
+            {selectedSubject.midterm.totalMidtermGrade ?? "—"}
+          </div>
+        </div>
 
-                {selectedSubject.finals.quizzes?.length > 0 && (
-                  <Table
-                    columns={quizColumns}
-                    dataSource={selectedSubject.finals.quizzes}
-                    pagination={false}
-                    rowKey="id"
-                    size="small"
-                  />
-                )}
+        <div class="summary-box">
+          <label>Rounded Grade</label>
+          <div class="value">
+            {selectedSubject.midterm.totalMidtermGradeRounded ?? "—"}
+          </div>
+        </div>
 
-                {selectedSubject.finals.classStandingItems?.length > 0 && (
-                  <Table
-                    columns={classItemsColumns}
-                    dataSource={
-                      selectedSubject.finals.classStandingItems
-                    }
-                    pagination={false}
-                    rowKey="id"
-                    size="small"
-                  />
-                )}
-              </>
-            ) : (
-              <p>No finals data available.</p>
-            )}
-          </Card>
-        </Col>
+        <div class="summary-box highlight">
+          <label>Grade Point Equivalent</label>
+          <div class="value strong">
+            {selectedSubject.midterm.gradePointEquivalent ?? "—"}
+          </div>
+        </div>
+      </div>
+
+      {/* 2-Column Body */}
+      <div class="two-col">
+        {/* Assessment Components */}
+        <div class="box-section">
+          <h4 class="box-title">Assessment Components</h4>
+
+          <div class="detail-row"><span>Quiz PG</span><span>{selectedSubject.midterm.quizPG ?? "N/A"}</span></div>
+          <div class="detail-row"><span>Recitation</span><span>{selectedSubject.midterm.recitationScore ?? "N/A"}</span></div>
+          <div class="detail-row"><span>Attendance</span><span>{selectedSubject.midterm.attendanceScore ?? "N/A"}</span></div>
+          <div class="detail-row"><span>Class Standing PG</span><span>{selectedSubject.midterm.classStandingPG ?? "N/A"}</span></div>
+          <div class="detail-row"><span>Project</span><span>{selectedSubject.midterm.projectScore ?? "N/A"}</span></div>
+          <div class="detail-row"><span>SEP</span><span>{selectedSubject.midterm.sepScore ?? "N/A"}</span></div>
+        </div>
+
+        {/* Score Details */}
+        <div class="box-section">
+          <h4 class="box-title">Score Details</h4>
+
+          {selectedSubject.midterm.quizzes?.length > 0 ||
+          selectedSubject.midterm.classStandingItems?.length > 0 ? (
+            <>
+              {selectedSubject.midterm.quizzes?.length > 0 && (
+                <Table
+                  columns={quizColumns}
+                  dataSource={selectedSubject.midterm.quizzes}
+                  pagination={false}
+                  rowKey="id"
+                  size="small"
+                />
+              )}
+
+              {selectedSubject.midterm.classStandingItems?.length > 0 && (
+                <Table
+                  columns={classItemsColumns}
+                  dataSource={selectedSubject.midterm.classStandingItems}
+                  pagination={false}
+                  rowKey="id"
+                  size="small"
+                />
+              )}
+            </>
+          ) : (
+            <div class="empty-box">
+              <div class="empty-icon">!</div>
+              <p>No detailed scores available</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  ) : (
+    <p>No midterm data available.</p>
+  )}
+</div>
+
+    )}
+
+    {/* FINALS TAB */}
+    {activeTab === "finals" && (
+<div class="grade-panel">
+  <h3 class="panel-title">Finals Breakdown</h3>
+
+  {selectedSubject.finals ? (
+    <>
+      {/* Summary Section */}
+      <div class="grade-summary">
+        <div class="summary-box">
+          <label>Calculated Grade</label>
+          <div class="value">
+            {selectedSubject.finals.totalFinalsGrade ?? "—"}
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <label>Rounded Grade</label>
+          <div class="value">
+            {selectedSubject.finals.totalFinalsGradeRounded ?? "—"}
+          </div>
+        </div>
+
+        <div class="summary-box highlight">
+          <label>Grade Point Equivalent</label>
+          <div class="value strong">
+            {selectedSubject.finals.gradePointEquivalent ?? "—"}
+          </div>
+        </div>
+      </div>
+
+      {/* 2-Column Body */}
+      <div class="two-col">
+        {/* Assessment Components */}
+        <div class="box-section">
+          <h4 class="box-title">Assessment Components</h4>
+
+          <div class="detail-row"><span>Quiz PG</span><span>{selectedSubject.finals.quizPG ?? "N/A"}</span></div>
+          <div class="detail-row"><span>Recitation</span><span>{selectedSubject.finals.recitationScore ?? "N/A"}</span></div>
+          <div class="detail-row"><span>Attendance</span><span>{selectedSubject.finals.attendanceScore ?? "N/A"}</span></div>
+          <div class="detail-row"><span>Class Standing PG</span><span>{selectedSubject.finals.classStandingPG ?? "N/A"}</span></div>
+          <div class="detail-row"><span>Project</span><span>{selectedSubject.finals.projectScore ?? "N/A"}</span></div>
+          <div class="detail-row"><span>SEP</span><span>{selectedSubject.finals.sepScore ?? "N/A"}</span></div>
+        </div>
+
+        {/* Score Details */}
+        <div class="box-section">
+          <h4 class="box-title">Score Details</h4>
+
+          {selectedSubject.finals.quizzes?.length > 0 ||
+          selectedSubject.finals.classStandingItems?.length > 0 ? (
+            <>
+              {selectedSubject.finals.quizzes?.length > 0 && (
+                <Table
+                  columns={quizColumns}
+                  dataSource={selectedSubject.finals.quizzes}
+                  pagination={false}
+                  rowKey="id"
+                  size="small"
+                />
+              )}
+
+              {selectedSubject.finals.classStandingItems?.length > 0 && (
+                <Table
+                  columns={classItemsColumns}
+                  dataSource={selectedSubject.finals.classStandingItems}
+                  pagination={false}
+                  rowKey="id"
+                  size="small"
+                />
+              )}
+            </>
+          ) : (
+            <div class="empty-box">
+              <div class="empty-icon">!</div>
+              <p>No detailed scores available</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  ) : (
+    <p>No finals data available.</p>
+  )}
+</div>
+
+    )}
+  </div>
+</div>
+
+
       </Row>
     )}
   </Modal>

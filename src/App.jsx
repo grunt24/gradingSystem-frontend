@@ -14,6 +14,7 @@ import UserEvents from "./pages/MainDashboard/UserEvents.jsx";
 import MidtermGrades from "./pages/MainDashboard/MidtermGrades.jsx";
 import FinalGrade from "./pages/MainDashboard/FinalGrades.jsx";
 import ViewingOfGrades from "./pages/MainDashboard/ViewingOfGrades.jsx";
+import ViewingOfGradesAdmin from "./pages/MainDashboard/ViewingOfGrades.jsx";
 import TeacherStudents from "./pages/MainDashboard/Teacher/TeacherStudents.jsx";
 import AcademicPeriods from "./pages/MainDashboard/AcademicPeriods.jsx";
 import AssignSubjectsToTeacher from "./pages/MainDashboard/Teacher/AssignSubjectsToTeacher.jsx";
@@ -41,6 +42,8 @@ const router = createBrowserRouter([
           { path: "/midterm", element: <MidtermGrades /> },
           { path: "/finals", element: <FinalGrade /> },
           { path: "/view-grades", element: <ViewingOfGrades /> },
+          { path: "/view-grades-admin", element: <ViewingOfGradesAdmin /> },
+
           { path: "/teacher-students", element: <TeacherStudents /> },
           { path: "/academic-periods", element: <AcademicPeriods /> },
           { path: "/assign-subjects", element: <AssignSubjectsToTeacher /> },
@@ -49,6 +52,7 @@ const router = createBrowserRouter([
           { path: "/add-curriculum", element: <AddCurriculumSubject /> },
           { path: "/grade-submission", element: <SubmissionOfGrades /> },
           { path: "/final-course-grade", element: <FinalCourseGrade /> },
+
 
 
         ],

@@ -229,10 +229,10 @@ const SidebarMenu = ({ collapsed, onMenuSelect }) => {
         icon: <RightOutlined />,
         label: <Link to="/assign-subjects">Assign Subjects</Link>,
       },
-      {
+            {
         key: "viewGrades_admin", // UNIQUE KEY - Replaced original "viewing"
         icon: <RightOutlined />,
-        label: <Link to="/view-grades">View Grades</Link>,
+        label: <Link to="/view-grades-admin">View Grades</Link>,
       },
       {
         key: "students_admin", // UNIQUE KEY
