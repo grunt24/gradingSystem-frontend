@@ -45,16 +45,24 @@ const loadTeacherSubjects = async (teacherId) => {
 
     setAssignedSubjects(assigned);
 
-    // Map to match the value of the Select (s.id if exists, otherwise subjectCode)
+    // Always map to subjectId
     const selectedIds = assigned
-      .map(s => s.id ?? s.subjectCode)  // fallback to subjectCode if no id
-      .filter(v => v !== null && v !== undefined);
+      .map((s) => {
+        // If backend returned subjectId correctly
+        if (s.id) return s.id;
+
+        // Else lookup the subject by subjectCode
+        const match = subjects.find(sub => sub.subjectCode === s.subjectCode);
+        return match ? match.id : null;
+      })
+      .filter((v) => v !== null);
 
     setSelectedSubjectIds(selectedIds);
   } catch (error) {
     toast.error("Failed to load teacher’s subjects");
   }
 };
+
 
 
   const handleTeacherChange = async (teacherId) => {

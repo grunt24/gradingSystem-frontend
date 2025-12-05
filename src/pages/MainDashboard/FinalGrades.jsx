@@ -2,13 +2,13 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Table,
   Button,
-  InputNumber,
   Tag,
   Form,
   Spin,
   Typography,
   Card,
   message,
+  InputNumber 
 } from "antd";
 import { SaveOutlined, PlusOutlined } from "@ant-design/icons";
 import { toast, ToastContainer } from "react-toastify";
@@ -17,6 +17,29 @@ import axiosInstance from "../../api/axiosInstance";
 import loginService from "../../api/loginService";
 import GradePercentage from "./Graph/GradePercentage";
 import debounce from "lodash/debounce";
+
+const SafeNumberInput = (props) => {
+  const handleKeyDown = (e) => {
+    const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
+    if (allowedKeys.includes(e.key)) return;
+
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+      message.warning("Only numbers (0–9) are allowed");
+    }
+  };
+
+  return (
+    <InputNumber
+      {...props}
+      max={999}
+      min={0}
+      onKeyDown={handleKeyDown}
+      parser={(v) => v.replace(/\D/g, "")}
+      formatter={(v) => `${v}`.replace(/\D/g, "")}
+    />
+  );
+};
 
 const API_URL = "/GradeCalculation/students-finalGrades";
 const UPDATE_API_URL = "/FinalsGrade";
@@ -242,7 +265,7 @@ export default function FinalsGradesTableContent() {
               title: (
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontWeight: 600, fontSize: 13 }}>Q{i + 1}</div>
-                  <InputNumber
+                  <SafeNumberInput
                     min={1}
                     value={totalForThisQuiz}
                     onChange={(val) => {
@@ -267,7 +290,7 @@ export default function FinalsGradesTableContent() {
               align: "center",
               render: (_, record) => (
                 <Form.Item name={[record.id, quizKey, "quizScore"]} initialValue={record.quizzes?.[i]?.quizScore} style={{ margin: 0 }}>
-                  <InputNumber
+                  <SafeNumberInput
                     min={0}
                     max={quizTotals[subjectName]?.[quizKey] ?? subjectGrades[0]?.quizzes?.[i]?.totalQuizScore ?? Infinity}
                     style={{ width: 70 }}
@@ -298,8 +321,24 @@ export default function FinalsGradesTableContent() {
               return <Tag color="blue">{total}</Tag>;
             },
           },
+                             {
+                                title: "PG",
+                                width: 80,
+                                render: (_, record) => (
+                                  <Tag color="blue">{record.quizPG?.toFixed(2) || "0.00"}</Tag>
+                                ),
+                              },
         ],
       },
+                  {
+                    title: "30%",
+                    width: 80,
+                    render: (_, record) => (
+                      <Tag color="green">
+                        {record.quizWeightedTotal?.toFixed(2) || "0.00"}
+                      </Tag>
+                    ),
+                  },
     ];
 
     const classStandingColumns = [
@@ -314,7 +353,7 @@ export default function FinalsGradesTableContent() {
             width: 80,
             render: (_, record) => (
               <Form.Item name={[record.id, "Attendance"]} initialValue={record.attendanceScore ?? 0} style={{ margin: 0 }}>
-                <InputNumber
+                <SafeNumberInput
                   min={0}
                   style={{ width: 60 }}
                   placeholder="Atten"
@@ -335,7 +374,7 @@ export default function FinalsGradesTableContent() {
             width: 80,
             render: (_, record) => (
               <Form.Item name={[record.id, "Recitation"]} initialValue={record.recitationScore ?? 0} style={{ margin: 0 }}>
-                <InputNumber
+                <SafeNumberInput
                   min={0}
                   style={{ width: 60 }}
                   placeholder="Recit"
@@ -357,7 +396,7 @@ export default function FinalsGradesTableContent() {
               title: (
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontWeight: 600, fontSize: 13 }}>CS {i + 1}</div>
-                  <InputNumber
+                  <SafeNumberInput
                     min={1}
                     value={totalForThisCS}
                     onChange={(val) => {
@@ -378,7 +417,7 @@ export default function FinalsGradesTableContent() {
               align: "center",
               render: (_, record) => (
                 <Form.Item name={[record.id, csKey, "score"]} initialValue={record.classStandingItems?.[i]?.score} style={{ margin: 0 }}>
-                  <InputNumber
+                  <SafeNumberInput
                     min={0}
                     max={totalForThisCS ?? Infinity}
                     style={{ width: 70 }}
@@ -408,6 +447,25 @@ export default function FinalsGradesTableContent() {
               return <Tag color="purple">{total}</Tag>;
             },
           },
+                             {
+                                title: "PG",
+                                width: 80,
+                                render: (_, record) => (
+                                  <Tag color="blue">
+                                    {record.classStandingPG?.toFixed(2) || "0.00"}
+                                  </Tag>
+                                ),
+                              },
+                              
+                                        {
+                                          title: "AVE",
+                                          width: 80,
+                                          render: (_, record) => (
+                                            <Tag color="blue">
+                                              {record.classStandingAverage?.toFixed(2) || "0.00"}
+                                            </Tag>
+                                          ),
+                                        },
         ],
       },
     ];
@@ -418,6 +476,17 @@ export default function FinalsGradesTableContent() {
         dataIndex: "studentFullName",
         width: 100,
       },
+                  {
+                    title: "30%",
+                    width: 80,
+                    render: (_, record) => (
+                      <Tag color="green">
+                        {record.classStandingWeightedTotal?.toFixed(2) || "0.00"}
+                      </Tag>
+                    ),
+                  },
+      
+      
 
       // Project Score and SEP (if BSED) — these come after Attendance/Rec in the layout because those are in CS group now
       ...[
@@ -432,7 +501,7 @@ export default function FinalsGradesTableContent() {
             initialValue={record[field] === 0 || record[field] === null ? null : record[field]}
             style={{ margin: 0 }}
           >
-            <InputNumber
+            <SafeNumberInput
               min={0}
               step={0.01}
               style={{ width: 60 }}
@@ -443,13 +512,22 @@ export default function FinalsGradesTableContent() {
             />
           </Form.Item>
         ),
+        
       })),
-
+      {
+        title: "10%",
+        width: 80,
+        render: (_, record) => (
+          <Tag color="green">
+            {record.projectWeightedTotal?.toFixed(2) || "0.00"}
+          </Tag>
+        ),
+      },
       {
         title: (
           <div style={{ textAlign: "center" }}>
             <div style={{ fontWeight: "bold" }}>Final Exam Total</div>
-            <InputNumber
+            <SafeNumberInput
               min={1}
               value={finalsTotals[subjectName] ?? subjectGrades[0]?.finalsTotal ?? undefined}
               onChange={(val) => {
@@ -470,7 +548,7 @@ export default function FinalsGradesTableContent() {
             title: "Total Score",
             render: (_, record) => (
               <Form.Item name={[record.id, "finalsScore"]} initialValue={record.finalsScore ?? undefined} style={{ margin: 0 }}>
-                <InputNumber
+                <SafeNumberInput
                   min={0}
                   max={finalsTotals[subjectName] ?? subjectGrades[0]?.finalsTotal ?? Infinity}
                   style={{ width: 60 }}
@@ -484,7 +562,24 @@ export default function FinalsGradesTableContent() {
           },
         ],
       },
-
+            {
+              title: "AVE",
+              width: 80,
+              render: (_, record) => (
+                <Tag color="green">
+                  {record.combinedFinalsAverage?.toFixed(2) || "0.00"}
+                </Tag>
+              ),
+            },
+                        {
+                    title: "30%",
+                    width: 80,
+                    render: (_, record) => (
+                      <Tag color="green">
+                        {record.finalsWeightedTotal?.toFixed(2) || "0.00"}
+                      </Tag>
+                    ),
+                  },
       {
         title: "Total Grade",
         dataIndex: "totalFinalsGrade",

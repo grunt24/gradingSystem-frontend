@@ -50,7 +50,37 @@ export default function MidtermGradesTableContent() {
     useState(null);
   const [availableStudents, setAvailableStudents] = useState([]);
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
-  
+
+const SafeNumberInput = (props) => {
+  const handleKeyDown = (e) => {
+    const allowedKeys = [
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "Tab",
+    ];
+
+    if (allowedKeys.includes(e.key)) return;
+
+    // Block letters and symbols
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+      message.warning("Only numbers (0–9) are allowed");
+    }
+  };
+
+  return (
+    <InputNumber
+      {...props}
+      max={999}
+      min={0}
+      onKeyDown={handleKeyDown}
+      parser={(v) => v.replace(/\D/g, "")}
+      formatter={(v) => `${v}`.replace(/\D/g, "")}
+    />
+  );
+};
 
   const modifiedGradesRef = useRef(new Map());
 
@@ -465,29 +495,11 @@ message.success("✅ Grades saved & midterm recalculated!");
     }
   };
 
-  const handleCalculateGrades = async (type) => {
-    setCalculating(true);
-    try {
-      if (type === "finals") {
-        await axiosInstance.post("/GradeCalculation/calculate-finals-all");
-        message.success("Finals grades calculated successfully.");
-      }
-      await fetchAllData();
-    } catch (err) {
-      console.error(err);
-      message.error("Failed to calculate grades.");
-    } finally {
-      setCalculating(false);
-    }
-  };
-
   const subjects = [...new Set(grades.map((g) => g.subjectName))];
 
   const renderTableForSubject = (subjectName) => {
     const subjectGrades = grades.filter((g) => g.subjectName === subjectName);
-    const isBSED = subjectGrades.some(
-      (g) => g.department?.toUpperCase() === "BSED"
-    );
+
 
 const hasBSED = subjectGrades.some(
   (g) => g.department?.trim().toUpperCase() === "BSED"
@@ -526,7 +538,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
       children: [
         {
           title: (
-            <InputNumber
+            <SafeNumberInput
               min={1}
               value={totals.quizTotals[i + 1] || ""}
               onChange={(val) =>
@@ -539,7 +551,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
           align: "center",
           width: 100, // Added fixed width
           render: (_, record) => (
-            <InputNumber
+            <SafeNumberInput
               min={0}
               max={totals.quizTotals[i + 1] || Infinity}
               value={record.quizzes?.[i]?.quizScore || 0}
@@ -560,7 +572,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
       children: [
         {
           title: (
-            <InputNumber
+            <SafeNumberInput
               min={1}
               value={totals.classStandingTotals[i + 1] || ""}
               onChange={(val) =>
@@ -572,7 +584,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
           ),
           width: 110, // Added fixed width
           render: (_, record) => (
-            <InputNumber
+            <SafeNumberInput
               min={0}
               max={totals.classStandingTotals[i + 1] || Infinity}
               value={record.classStandingItems?.[i]?.score || 0}
@@ -684,7 +696,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
             title: "Rec",
             width: 80,
             render: (_, record) => (
-              <InputNumber
+              <SafeNumberInput
                 min={0}
                 value={record.recitationScore || 0}
                 onChange={(val) =>
@@ -700,7 +712,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
             title: "Attendance",
             width: 80,
             render: (_, record) => (
-              <InputNumber
+              <SafeNumberInput
                 min={0}
                 value={record.attendanceScore || 0}
                 onChange={(val) =>
@@ -773,54 +785,6 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
     </Tag>
   ),
 },
-
-      // {
-      //   title: "Rec",
-      //   width: 80, // Reduced from 100
-      //   render: (_, record) => (
-      //     <InputNumber
-      //       min={0}
-      //       value={record.recitationScore || 0}
-      //       onChange={(val) =>
-      //         handleInputChange(record.id, "recitationScore", val)
-      //       }
-      //       style={{ width: 60 }}
-      //     />
-      //   ),
-      // },
-      // {
-      //   title: "Attendance",
-      //   width: 20, // Reduced from 100
-      //   render: (_, record) => (
-      //     <InputNumber
-      //       min={0}
-      //       value={record.attendanceScore || 0}
-      //       onChange={(val) =>
-      //         handleInputChange(record.id, "attendanceScore", val)
-      //       }
-      //       style={{ width: 60 }}
-      //     />
-      //   ),
-      // },
-  // ...(hasBSED
-  //   ? [
-  //       {
-  //         title: "SEP",
-  //         width: 70,
-  //         align: "center",
-  //         render: (_, record) => (
-  //           <InputNumber
-  //             min={0}
-  //             value={record.sepScore || 0}
-  //             onChange={(val) =>
-  //               handleInputChange(record.id, "sepScore", val)
-  //             }
-  //             style={{ width: 55 }}
-  //           />
-  //         ),
-  //       },
-  //     ]
-  //   : []),
 ...(hasBSED
   ? [
       {
@@ -832,7 +796,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
             return null; // hides the cell for non-BSED
           }
           return (
-            <InputNumber
+            <SafeNumberInput
               min={0}
               value={record.sepScore || 0}
               onChange={(val) =>
@@ -852,7 +816,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
         title: "Project",
         width: 70, // Reduced from 100
         render: (_, record) => (
-          <InputNumber
+          <SafeNumberInput
             min={0}
             value={record.projectScore || 0}
             onChange={(val) =>
@@ -860,6 +824,15 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
             }
             style={{ width: 55 }}
           />
+        ),
+      },
+      {
+        title: "10%",
+        width: 80,
+        render: (_, record) => (
+          <Tag color="green">
+            {record.projectWeighted?.toFixed(2) || "0.00"}
+          </Tag>
         ),
       },
       {
@@ -872,7 +845,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
                 {/* <div style={{ fontWeight: "bold", fontSize: 12 }}>
                   Prelim Total
                 </div> */}
-                <InputNumber
+                <SafeNumberInput
                   min={0}
                   value={totals.prelimTotal || 0}
                   onChange={(val) =>
@@ -884,7 +857,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
             ),
             width: 90, // Reduced from 100
             render: (_, record) => (
-              <InputNumber
+              <SafeNumberInput
                 min={0}
                 max={totals.prelimTotal || 0}
                 value={record.prelimScore || 0}
@@ -907,7 +880,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
                 {/* <div style={{ fontWeight: "bold", fontSize: 12 }}>
                   Midterm Total
                 </div> */}
-                <InputNumber
+                <SafeNumberInput
                   min={0}
                   value={totals.midtermTotal || 0}
                   onChange={(val) =>
@@ -919,7 +892,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
             ),
             width: 90, // Reduced from 100
             render: (_, record) => (
-              <InputNumber
+              <SafeNumberInput
                 min={0}
                 max={totals.midtermTotal}
                 value={record.midtermScore || 0}
@@ -957,6 +930,24 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
             </Tag>
           );
         },
+      },
+      {
+        title: "AVE",
+        width: 80,
+        render: (_, record) => (
+          <Tag color="green">
+            {record.combinedPrelimMidtermAverage?.toFixed(2) || "0.00"}
+          </Tag>
+        ),
+      },
+            {
+        title: "30%",
+        width: 80,
+        render: (_, record) => (
+          <Tag color="green">
+            {record.midtermExamWeighted?.toFixed(2) || "0.00"}
+          </Tag>
+        ),
       },
 
       {

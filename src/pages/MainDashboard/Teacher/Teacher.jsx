@@ -163,13 +163,17 @@ function Teacher() {
     setExpandedTeacherId((prev) => (prev === teacherId ? null : teacherId));
   };
 
-  const filteredTeachers = teachers
-    .filter((t) => t.fullname.toLowerCase().includes(searchTerm.toLowerCase()))
-    .sort((a, b) => {
-      const nameA = a.fullname.toLowerCase();
-      const nameB = b.fullname.toLowerCase();
-      return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-    });
+const filteredTeachers = teachers
+  .filter((t) => {
+    const name = t.fullname || "";
+    return name.toLowerCase().includes(searchTerm.toLowerCase());
+  })
+  .sort((a, b) => {
+    const nameA = (a.fullname || "").toLowerCase();
+    const nameB = (b.fullname || "").toLowerCase();
+    return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+  });
+
 
   const totalPages = Math.ceil(filteredTeachers.length / itemsPerPage);
   const displayedTeachers = filteredTeachers.slice(
