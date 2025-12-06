@@ -213,3 +213,139 @@
   margin-bottom: 10px;
   opacity: 0.4;
 }
+
+/* Wrap your entire grade tab design */
+.grade-tabs {
+  width: 100%;
+}
+
+/* Tabs */
+.tab-header {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.tab-btn {
+  padding: 8px 14px;
+  border: none;
+  background: #e8e8e8;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.tab-btn.active {
+  background: #1677ff;
+  color: white;
+}
+
+/* Panel container */
+.grade-panel {
+  width: 100%;
+}
+
+/* Summary Section */
+.grade-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.summary-box {
+  background: #fafafa;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.summary-box.highlight {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+
+.summary-box .value {
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.summary-box .strong {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* Two column layout */
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+/* Box sections */
+.box-section {
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.box-title {
+  font-size: 16px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed #ddd;
+  font-size: 14px;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+/* Empty box */
+.empty-box {
+  text-align: center;
+  padding: 25px;
+  color: #888;
+}
+
+.empty-icon {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+/* -------------------------- */
+/* 📱 MOBILE RESPONSIVE FIXES */
+/* -------------------------- */
+
+@media (max-width: 900px) {
+  .two-col {
+    grid-template-columns: 1fr; /* Stack vertically */
+  }
+}
+
+@media (max-width: 768px) {
+  .grade-summary {
+    grid-template-columns: 1fr; /* Stack summary boxes */
+  }
+}
+
+@media (max-width: 600px) {
+  .tab-header {
+    flex-direction: column;
+  }
+}
+
+/* Allow tables to scroll horizontally on small devices */
+.ant-table-wrapper {
+  overflow-x: auto;
+}
