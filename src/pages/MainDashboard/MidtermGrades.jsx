@@ -181,7 +181,7 @@ const SafeNumberInput = (props) => {
             ? student.sepScore || 0
             : 0,
         seppg: student.seppg || 0,
-        sepWeighted: student.sepweighted || 0,
+        sepWeightedTotal: student.sepweightedTotal || 0,
 
         projectScore: student.projectScore || 0,
         projectPG: student.projectPG || 0,
@@ -809,7 +809,19 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
       },
     ]
   : []),
-
+...(hasBSED
+  ? [
+      {
+        title: "5%",
+        width: 80,
+        render: (_, record) => (
+          <Tag color="green">
+            {record.projectWeighted?.toFixed(2) || "0.00"}
+          </Tag>
+        ),
+      },
+    ]
+  : []),
 
 
       {
@@ -818,7 +830,7 @@ const classStandingPercentTitle = firstDept === "BSED" ? "25%" : "30%";
         render: (_, record) => (
           <SafeNumberInput
             min={0}
-            value={record.projectScore || 0}
+            value={record.projectScore  || 0}
             onChange={(val) =>
               handleInputChange(record.id, "projectScore", val)
             }

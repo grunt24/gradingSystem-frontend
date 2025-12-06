@@ -476,53 +476,89 @@ export default function FinalsGradesTableContent() {
         dataIndex: "studentFullName",
         width: 100,
       },
-                  {
-                    title: "30%",
-                    width: 80,
-                    render: (_, record) => (
-                      <Tag color="green">
-                        {record.classStandingWeightedTotal?.toFixed(2) || "0.00"}
-                      </Tag>
-                    ),
-                  },
+{
+  title: isBSED ? "25%" : "30%",   // same logic as midterm
+  width: 80,
+  render: (_, record) => (
+    <Tag color="green">
+      {record.classStandingWeightedTotal?.toFixed(2) || "0.00"}
+    </Tag>
+  ),
+},
+
+
+
       
       
 
       // Project Score and SEP (if BSED) — these come after Attendance/Rec in the layout because those are in CS group now
-      ...[
-        "Project Score",
-        ...(isBSED ? ["sepScore"] : []),
-      ].map((field) => ({
-        title: field,
-        key: field,
+// PROJECT + 10% + SEP (BSED only)
+{
+  title: "Project Score",
+  key: "Project Score",
+  render: (_, record) => (
+    <Form.Item
+      name={[record.id, "Project Score"]}
+      initialValue={record.projectScore ?? null}
+      style={{ margin: 0 }}
+    >
+      <SafeNumberInput
+        min={0}
+        step={0.01}
+        style={{ width: 60 }}
+        placeholder="Project"
+        onChange={triggerAutoSaveAndCalculate}
+      />
+    </Form.Item>
+  ),
+},
+
+{
+  title: "10%",
+  key: "projectWeightedTotal",
+  width: 80,
+  render: (_, record) => (
+    <Tag color="green">
+      {record.projectWeightedTotal?.toFixed(2) || "0.00"}
+    </Tag>
+  ),
+},
+
+// SEP only for BSED
+...(isBSED
+  ? [
+      {
+        title: "SEP",
+        key: "sepScore",
         render: (_, record) => (
           <Form.Item
-            name={[record.id, field]}
-            initialValue={record[field] === 0 || record[field] === null ? null : record[field]}
+            name={[record.id, "sepScore"]}
+            initialValue={record.sepScore ?? null}
             style={{ margin: 0 }}
           >
             <SafeNumberInput
               min={0}
               step={0.01}
               style={{ width: 60 }}
-              placeholder={field}
-              onChange={() => {
-                triggerAutoSaveAndCalculate();
-              }}
+              placeholder="SEP"
+              onChange={triggerAutoSaveAndCalculate}
             />
           </Form.Item>
         ),
-        
-      })),
-      {
-        title: "10%",
-        width: 80,
-        render: (_, record) => (
-          <Tag color="green">
-            {record.projectWeightedTotal?.toFixed(2) || "0.00"}
-          </Tag>
-        ),
       },
+      {
+  title: "5%",
+  key: "sepWeightedTotal",
+  width: 80,
+  render: (_, record) => (
+    <Tag color="green">
+      {record.sepWeightedTotal?.toFixed(2) || "0.00"}
+    </Tag>
+  ),
+},
+    ]
+  : []),
+
       {
         title: (
           <div style={{ textAlign: "center" }}>
