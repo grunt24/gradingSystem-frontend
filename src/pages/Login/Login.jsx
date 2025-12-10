@@ -95,6 +95,9 @@ const Login = () => {
           >
             {loading ? <Spin size="small" /> : "Login"}
           </Button>
+
+            <a href="/register">Enroll</a>
+
         </Form>
         <p className="sign-up-label">
           {/* Don't have an account? <span className="sign-up-link">Sign up</span> */}
